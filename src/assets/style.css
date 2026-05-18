@@ -99,38 +99,40 @@ a {
    ========================================================== */
 .btn {
   display: inline-block;
-  padding: 0.85rem 1.8rem;
-  font-family: 'DM Sans', Calibri, sans-serif;
-  font-size: 0.95rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 10px;
   font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
   border: 2px solid transparent;
-  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 
-.btn:hover {
-  opacity: 0.9;
-}
-
-.btn-primary {
+.btn-primary,
+.btn-accent {
   background-color: #7CB342;
   color: #ffffff;
+  border-color: #7CB342;
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+.btn-accent:hover {
   background-color: #558B2F;
+  border-color: #558B2F;
 }
 
 .btn-outline {
   background-color: transparent;
   color: #558B2F;
-  border: 2px solid #E0E0E0;
+  border-color: #7CB342;
 }
 
 .btn-outline:hover {
-  border-color: #7CB342;
-  color: #7CB342;
+  background-color: #7CB342;
+  color: #ffffff;
 }
+
 
 /* ==========================================================
    HERO-CARD – die dunkelgruene Karte rechts
