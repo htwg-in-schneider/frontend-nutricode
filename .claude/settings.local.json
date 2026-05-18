@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\User\\\\Semester6\\\\WEB-TEC\\\\NutriCode\\\\frontend-static-nutricode\")",
+      "Read(//c/Users/User/Semester6/WEB-TEC/NutriCode/frontend-static-nutricode/**)"
+    ]
+  }
+}
