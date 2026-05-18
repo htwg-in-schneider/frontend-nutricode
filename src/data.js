@@ -1,3 +1,11 @@
+import beerenBowl from './assets/images/recipes/beeren-bowl.png'
+import energyBalls from './assets/images/recipes/energy-balls.png'
+import quinoaBowl from './assets/images/recipes/quinoa-bowl.png'
+import gruenerSmoothie from './assets/images/recipes/gruener-smoothie.png'
+import overnightOats from './assets/images/recipes/overnight-oats.png'
+import haehnchenWrap from './assets/images/recipes/haehnchen-wrap.jpg'
+
+
 export const recipes = [
   {
     id: 1,
@@ -5,7 +13,7 @@ export const recipes = [
     category: 'Bowl',
     kcal: 380,
     duration: 5,
-    image: '--',
+    image: beerenBowl,
     description: 'Cremiger Joghurt mit gemischten Beeren und knusprigem Granola. Perfekt für ein schnelles Frühstück.'
   },
   {
@@ -14,7 +22,7 @@ export const recipes = [
     category: 'Snack',
     kcal: 95,
     duration: 15,
-    image: '--',
+    image: energyBalls,
     description: 'Süße Energiekugeln aus Datteln, Haferflocken und Nüssen – ideal für unterwegs.'
   },
   {
@@ -23,7 +31,7 @@ export const recipes = [
     category: 'Hauptmahlzeit',
     kcal: 540,
     duration: 25,
-    image: '--',
+    image: quinoaBowl,
     description: 'Quinoa mit geröstetem Gemüse, Avocado und Tahini-Dressing – sättigend und nährstoffreich.'
   },
   {
@@ -32,7 +40,7 @@ export const recipes = [
     category: 'Smoothie',
     kcal: 220,
     duration: 5,
-    image: '--',
+    image: gruenerSmoothie,
     description: 'Spinat, Banane, Apfel und Ingwer – ein erfrischender Vitaminkick für zwischendurch.'
   },
   {
@@ -41,7 +49,7 @@ export const recipes = [
     category: 'Frühstück',
     kcal: 350,
     duration: 5,
-    image: '--',
+    image: overnightOats,
     description: 'Haferflocken über Nacht in Pflanzenmilch eingeweicht, mit frischer Mango und Chiasamen.'
   },
   {
@@ -50,7 +58,7 @@ export const recipes = [
     category: 'Hauptmahlzeit',
     kcal: 480,
     duration: 15,
-    image: '--',
+    image: haehnchenWrap,
     description: 'Vollkorn-Wrap gefüllt mit gegrilltem Hähnchen, Avocado und knackigem Gemüse.'
   }
 ]
