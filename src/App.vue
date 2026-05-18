@@ -1,7 +1,14 @@
-<script setup></script>
+<script setup>
+import { recipes } from './data.js'
+
+function showDetails(recipe) {
+  alert(recipe.description)
+}
+
+</script>
 
 <template>
-  <body>
+ <div>
 
   <!-- NAVBAR -->
   <header class="container" style="position: relative;">
@@ -193,6 +200,26 @@
     </div>
   </section>
 
+  <!-- REZEPTE – dynamisch aus data.js -->
+<section class="recipes">
+  <div class="container">
+    <div class="section-header">
+      <p class="section-tag">Inspiration</p>
+      <h2 class="section-title">Snack und Bowl Bibliothek</h2>
+    </div>
+
+    <div class="recipes-grid">
+      <article v-for="recipe in recipes" :key="recipe.id" class="recipe-card">
+        <img :src="recipe.image" :alt="recipe.name" class="recipe-image">
+        <p class="recipe-category">{{ recipe.category }}</p>
+        <h3 class="recipe-name">{{ recipe.name }}</h3>
+        <p class="recipe-meta">{{ recipe.kcal }} kcal · {{ recipe.duration }} Min</p>
+        <button class="btn btn-outline" @click="showDetails(recipe)">Details</button>
+      </article>
+    </div>
+  </div>
+</section>
+
   <!-- CTA BANNER -->
   <section class="cta-banner">
     <div class="container">
@@ -207,7 +234,7 @@
     <p>© 2026 NutriCode · Paul Bärenfänger &amp; Leon Mönch · Projektarbeit Webentwicklung SS 2026</p>
   </footer>
 
-</body>
+ </div>
 </template>
 
 <style scoped></style>
