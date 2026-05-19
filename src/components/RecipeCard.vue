@@ -1,13 +1,7 @@
 <script setup>
-import Button from './Button.vue'
-
 const props = defineProps({
   recipe: { type: Object, required: true }
 })
-
-function showDetails() {
-  alert(props.recipe.description)
-}
 </script>
 
 <template>
@@ -16,7 +10,12 @@ function showDetails() {
     <p class="recipe-category">{{ recipe.category }}</p>
     <h3 class="recipe-name">{{ recipe.name }}</h3>
     <p class="recipe-meta">{{ recipe.kcal }} kcal · {{ recipe.duration }} Min</p>
-    <Button variant="outline" :onClick="showDetails">Details</Button>
+    <router-link
+      :to="`/recipe/${recipe.id}`"
+      class="btn btn-outline"
+    >
+      Details
+    </router-link>
   </article>
 </template>
 
