@@ -1,17 +1,13 @@
 <script setup>
-import { ref } from 'vue'
+import { useBannerStore } from '../stores/banner.js'
 
-const isVisible = ref(true)
-
-function hideBanner() {
-  isVisible.value = false
-}
+const bannerStore = useBannerStore()
 </script>
 
 <template>
-  <div v-if="isVisible" class="special-banner">
+  <div v-if="bannerStore.isVisible" class="special-banner">
     <p>Neu: Generiere deinen KI-gestützten Ernährungsplan in unter 60 Sekunden.</p>
-    <button class="banner-close" @click="hideBanner" aria-label="Schließen">✕</button>
+    <button class="banner-close" @click="bannerStore.hideBanner" aria-label="Schließen">✕</button>
   </div>
 </template>
 
