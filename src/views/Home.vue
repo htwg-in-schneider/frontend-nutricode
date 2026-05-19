@@ -1,7 +1,22 @@
 <script setup>
+import { ref, onMounted } from 'vue'
 import RecipeCard from '../components/RecipeCard.vue'
-import { recipes } from '../data.js'
+
+const recipes = ref([])
+const error = ref(null)
+
+onMounted(async () => {
+  try {
+    const response = await fetch('https://dummyjson.com/recipes')
+    if (!response.ok) throw new Error('Fehler beim Laden der Rezepte')
+    const data = await response.json()
+    recipes.value = data.recipes
+  } catch (err) {
+    error.value = err.message
+  }
+})
 </script>
+
 
 <template>
   <div>

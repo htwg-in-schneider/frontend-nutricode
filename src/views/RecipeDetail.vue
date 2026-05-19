@@ -1,15 +1,27 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { recipes } from '../data.js'
 import Button from '../components/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
+const recipe = ref(null)
+const error = ref(null)
 
-const recipe = computed(() =>
-  recipes.find(r => r.id === Number(route.params.id))
-)
+async function loadRecipe(id) {
+  try {
+    const response = await fetch(`https://dummyjson.com/recipes/${id}`)
+    if (!response.ok) throw new Error('Rezept nicht gefunden')
+    recipe.value = await response.json()
+    error.value = null
+  } catch (err) {
+    error.value = err.message
+    recipe.value = null
+  }
+}
+
+onMounted(() => loadRecipe(route.params.id))
+watch(() => route.params.id, (newId) => newId && loadRecipe(newId))
 
 function goBack() {
   router.back()
@@ -23,17 +35,34 @@ function goBack() {
     <div class="recipe-detail-content">
       <img :src="recipe.image" :alt="recipe.name" class="recipe-detail-image">
       <div class="recipe-detail-info">
-        <p class="recipe-category">{{ recipe.category }}</p>
+        <p class="recipe-category">{{ recipe.mealType?.[0] || recipe.cuisine }}</p>
         <h1>{{ recipe.name }}</h1>
-        <p class="recipe-meta">{{ recipe.kcal }} kcal · {{ recipe.duration }} Min</p>
-        <p class="recipe-description">{{ recipe.description }}</p>
+        <p class="recipe-meta">
+          {{ recipe.caloriesPerServing }} kcal ·
+          {{ (recipe.prepTimeMinutes || 0) + (recipe.cookTimeMinutes || 0) }} Min ·
+          {{ recipe.servings }} Portionen
+        </p>
+
+        <h3>Zutaten</h3>
+        <ul>
+          <li v-for="ing in recipe.ingredients" :key="ing">{{ ing }}</li>
+        </ul>
+
+        <h3>Zubereitung</h3>
+        <ol>
+          <li v-for="step in recipe.instructions" :key="step">{{ step }}</li>
+        </ol>
       </div>
     </div>
   </section>
 
-  <section class="recipe-detail container" v-else>
-    <p>Rezept nicht gefunden.</p>
+  <section class="recipe-detail container" v-else-if="error">
+    <p>{{ error }}</p>
     <Button variant="outline" :onClick="goBack">← Zurück</Button>
+  </section>
+
+  <section class="recipe-detail container" v-else>
+    <p>Lade Rezept...</p>
   </section>
 </template>
 
@@ -67,9 +96,10 @@ function goBack() {
   color: #555;
   margin: 0.5rem 0 1.5rem;
 }
-.recipe-description {
+.recipe-detail-info ul,
+.recipe-detail-info ol {
+  padding-left: 1.5rem;
   line-height: 1.6;
-  color: #333;
 }
 
 @media (max-width: 768px) {

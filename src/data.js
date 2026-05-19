@@ -1,4 +1,4 @@
-import beerenBowl from './assets/images/recipes/beeren-bowl.png'
+/*import beerenBowl from './assets/images/recipes/beeren-bowl.png'
 import energyBalls from './assets/images/recipes/energy-balls.png'
 import quinoaBowl from './assets/images/recipes/quinoa-bowl.png'
 import gruenerSmoothie from './assets/images/recipes/gruener-smoothie.png'
@@ -62,3 +62,5 @@ export const recipes = [
     description: 'Vollkorn-Wrap gefüllt mit gegrilltem Hähnchen, Avocado und knackigem Gemüse.'
   }
 ]
+*/
+

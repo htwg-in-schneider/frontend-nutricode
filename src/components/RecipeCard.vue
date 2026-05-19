@@ -7,17 +7,18 @@ const props = defineProps({
 <template>
   <article class="recipe-card">
     <img :src="recipe.image" :alt="recipe.name" class="recipe-image">
-    <p class="recipe-category">{{ recipe.category }}</p>
+    <p class="recipe-category">{{ recipe.mealType?.[0] || recipe.cuisine }}</p>
     <h3 class="recipe-name">{{ recipe.name }}</h3>
-    <p class="recipe-meta">{{ recipe.kcal }} kcal · {{ recipe.duration }} Min</p>
-    <router-link
-      :to="`/recipe/${recipe.id}`"
-      class="btn btn-outline"
-    >
+    <p class="recipe-meta">
+      {{ recipe.caloriesPerServing }} kcal ·
+      {{ (recipe.prepTimeMinutes || 0) + (recipe.cookTimeMinutes || 0) }} Min
+    </p>
+    <router-link :to="`/recipe/${recipe.id}`" class="btn btn-outline">
       Details
     </router-link>
   </article>
 </template>
+
 
 <style scoped>
 .recipe-card {
