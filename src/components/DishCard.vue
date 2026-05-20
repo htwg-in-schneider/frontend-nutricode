@@ -12,9 +12,11 @@ const props = defineProps({
     <p class="dish-category">{{ CATEGORY_LABELS[dish.category] || dish.category }}</p>
     <h3 class="dish-name">{{ dish.title }}</h3>
     <p class="dish-meta">{{ dish.calories }} kcal</p>
-    <router-link :to="`/dish/${dish.id}`" class="btn btn-outline">
-      Details
-    </router-link>
+    <div class="dish-card-actions">
+      <router-link :to="`/dish/${dish.id}`" class="btn btn-outline">Details</router-link>
+      <router-link :to="`/dish/${dish.id}/edit`" class="btn btn-accent">Bearbeiten</router-link>
+    </div>
+
   </article>
 </template>
 
@@ -54,4 +56,17 @@ const props = defineProps({
   margin: 0 0 1rem 0;
   font-size: 0.95rem;
 }
+
+.dish-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+.dish-card-actions .btn {
+  flex: 1;
+  text-align: center;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.8rem;
+}
+
 </style>

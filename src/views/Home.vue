@@ -196,6 +196,10 @@ onMounted(async () => {
           <p class="section-tag">Inspiration</p>
           <h2 class="section-title">Snack und Bowl Bibliothek</h2>
         </div>
+        <div style="text-align: right; margin-bottom: 1.5rem;">
+          <router-link to="/dish/new" class="btn btn-accent">+ Neues Gericht</router-link>
+        </div>
+
         <p v-if="error" class="dish-error">{{ error }}</p>
         <div class="recipes-grid">
           <DishCard
