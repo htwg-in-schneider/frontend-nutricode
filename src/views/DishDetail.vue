@@ -3,6 +3,8 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE, CATEGORY_LABELS } from '../config.js'
+import DishIngredients from '../components/DishIngredients.vue'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -40,6 +42,10 @@ function goBack() {
         <h1>{{ dish.title }}</h1>
         <p class="dish-meta">{{ dish.calories }} kcal</p>
         <p class="dish-description">{{ dish.description }}</p>
+        <p class="dish-description">{{ dish.description }}</p>
+
+        <DishIngredients :dishId="dish.id" :key="dish.id" />
+
       </div>
     </div>
   </section>

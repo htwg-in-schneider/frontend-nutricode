@@ -15,6 +15,7 @@ const dish = ref({
 })
 
 const categories = ref([])
+const ingredients = ref([])   // lokale Liste: [{ name, amount }]
 
 onMounted(async () => {
   try {
@@ -25,14 +26,39 @@ onMounted(async () => {
   }
 })
 
+function addIngredientRow() {
+  ingredients.value.push({ name: '', amount: '' })
+}
+
+function removeIngredientRow(index) {
+  ingredients.value.splice(index, 1)
+}
+
 async function createDish() {
   try {
+    // 1) Gericht anlegen
     const response = await fetch(`${API_BASE}/api/dish`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dish.value)
     })
     if (!response.ok) throw new Error('Fehler beim Anlegen des Gerichts')
+    const created = await response.json()
+
+    // 2) Zutaten anlegen (1:n) – jede mit dem neuen Gericht verknüpfen
+    for (const ing of ingredients.value) {
+      if (!ing.name) continue
+      await fetch(`${API_BASE}/api/ingredient`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: ing.name,
+          amount: ing.amount,
+          dish: { id: created.id }
+        })
+      })
+    }
+
     alert('Gericht erfolgreich angelegt!')
     router.push('/gerichte')
   } catch (err) {
@@ -69,6 +95,17 @@ async function createDish() {
           </option>
         </select>
       </label>
+
+      <fieldset class="ingredients-fieldset">
+        <legend>Zutaten</legend>
+        <div v-for="(ing, index) in ingredients" :key="index" class="ingredient-row">
+          <input v-model="ing.name" type="text" placeholder="Zutat (z. B. Haferflocken)">
+          <input v-model="ing.amount" type="text" placeholder="Menge (z. B. 50 g)">
+          <button type="button" class="btn btn-danger" @click="removeIngredientRow(index)">✕</button>
+        </div>
+        <button type="button" class="btn btn-outline" @click="addIngredientRow">+ Zutat hinzufügen</button>
+      </fieldset>
+
       <div class="form-actions">
         <Button type="submit" variant="accent">Anlegen</Button>
         <Button type="button" variant="outline" :onClick="() => router.push('/gerichte')">Abbrechen</Button>
@@ -105,6 +142,28 @@ async function createDish() {
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
+}
+.ingredients-fieldset {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+}
+.ingredients-fieldset legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+}
+.ingredient-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.ingredient-row input {
+  flex: 1;
+}
+.btn-danger {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
 }
 .form-actions {
   display: flex;
