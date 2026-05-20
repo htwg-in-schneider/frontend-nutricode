@@ -1,21 +1,34 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import DishCard from '../components/DishCard.vue'
+import DishFilter from '../components/DishFilter.vue'
 import { API_BASE } from '../config.js'
 
 const dishes = ref([])
 const error = ref(null)
 
-onMounted(async () => {
+async function fetchDishes(params = {}) {
   try {
-    const response = await fetch(`${API_BASE}/api/dish`)
+    const query = new URLSearchParams()
+    if (params.name) query.append('name', params.name)
+    if (params.category) query.append('category', params.category)
+
+    const url = query.toString()
+      ? `${API_BASE}/api/dish?${query.toString()}`
+      : `${API_BASE}/api/dish`
+
+    const response = await fetch(url)
     if (!response.ok) throw new Error('Fehler beim Laden der Gerichte')
     dishes.value = await response.json()
+    error.value = null
   } catch (err) {
     error.value = err.message
   }
-})
+}
+
+onMounted(() => fetchDishes())
 </script>
+
 
 
 <template>
@@ -200,6 +213,8 @@ onMounted(async () => {
           <router-link to="/dish/new" class="btn btn-accent">+ Neues Gericht</router-link>
         </div>
 
+        <DishFilter @search="fetchDishes" />
+
         <p v-if="error" class="dish-error">{{ error }}</p>
         <div class="recipes-grid">
           <DishCard
@@ -210,6 +225,7 @@ onMounted(async () => {
         </div>
       </div>
     </section>
+
 
 
     <!-- CTA BANNER -->
