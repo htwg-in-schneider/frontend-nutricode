@@ -34,7 +34,7 @@ async function createDish() {
     })
     if (!response.ok) throw new Error('Fehler beim Anlegen des Gerichts')
     alert('Gericht erfolgreich angelegt!')
-    router.push('/')
+    router.push('/gerichte')
   } catch (err) {
     alert(err.message)
   }
@@ -71,7 +71,7 @@ async function createDish() {
       </label>
       <div class="form-actions">
         <Button type="submit" variant="accent">Anlegen</Button>
-        <Button type="button" variant="outline" :onClick="() => router.push('/')">Abbrechen</Button>
+        <Button type="button" variant="outline" :onClick="() => router.push('/gerichte')">Abbrechen</Button>
       </div>
     </form>
   </section>

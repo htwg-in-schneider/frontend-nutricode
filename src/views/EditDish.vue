@@ -27,7 +27,7 @@ onMounted(async () => {
     categories.value = await catRes.json()
   } catch (err) {
     alert(err.message)
-    router.push('/')
+    router.push('/gerichte')
   }
 })
 
@@ -54,7 +54,7 @@ async function deleteDish() {
     })
     if (!response.ok) throw new Error('Fehler beim Löschen')
     alert('Gericht gelöscht!')
-    router.push('/')
+    router.push('/gerichte')
   } catch (err) {
     alert(err.message)
   }
@@ -92,7 +92,7 @@ async function deleteDish() {
       <div class="form-actions">
         <Button type="submit" variant="accent">Speichern</Button>
         <Button type="button" variant="danger" :onClick="deleteDish">Löschen</Button>
-        <Button type="button" variant="outline" :onClick="() => router.push('/')">Abbrechen</Button>
+        <Button type="button" variant="outline" :onClick="() => router.push('/gerichte')">Abbrechen</Button>
       </div>
     </form>
   </section>

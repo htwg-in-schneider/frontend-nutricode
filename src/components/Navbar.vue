@@ -1,4 +1,18 @@
 <script setup>
+import { ref, onMounted } from 'vue'
+import { API_BASE } from '../config.js'
+
+const categories = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await fetch(`${API_BASE}/api/category`)
+    categories.value = await response.json()
+  } catch (err) {
+    console.error('Kategorien konnten nicht geladen werden', err)
+  }
+})
+
 function toggleMenu() {
   document.getElementById('nav-links').classList.toggle('navbar-links-open')
 }
@@ -7,20 +21,27 @@ function toggleMenu() {
 <template>
   <header class="container" style="position: relative;">
     <nav class="navbar">
-      <a href="#" class="navbar-brand">Nutri<span>Code</span></a>
+      <router-link to="/" class="navbar-brand">Nutri<span>Code</span></router-link>
 
       <button class="navbar-toggle" @click="toggleMenu">
         <span></span><span></span><span></span>
       </button>
 
       <ul class="navbar-links" id="nav-links">
-        <li><a href="#">Startseite</a></li>
-        <li><a href="#">Berechnen</a></li>
+        <li><router-link to="/">Startseite</router-link></li>
+        <li><router-link to="/gerichte">Gerichte</router-link></li>
+        <li v-for="cat in categories" :key="cat.name">
+          <router-link :to="{ path: '/gerichte', query: { category: cat.name } }">
+            {{ cat.label }}
+          </router-link>
+        </li>
         <li><a href="#" class="navbar-cta">Anmelden</a></li>
       </ul>
+
     </nav>
   </header>
 </template>
+
 
 <style scoped>
 /* Navbar-spezifische Styles aus style.css hierher verschieben */

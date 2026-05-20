@@ -1,34 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import DishCard from '../components/DishCard.vue'
-import DishFilter from '../components/DishFilter.vue'
-import { API_BASE } from '../config.js'
 
-const dishes = ref([])
-const error = ref(null)
-
-async function fetchDishes(params = {}) {
-  try {
-    const query = new URLSearchParams()
-    if (params.name) query.append('name', params.name)
-    if (params.category) query.append('category', params.category)
-
-    const url = query.toString()
-      ? `${API_BASE}/api/dish?${query.toString()}`
-      : `${API_BASE}/api/dish`
-
-    const response = await fetch(url)
-    if (!response.ok) throw new Error('Fehler beim Laden der Gerichte')
-    dishes.value = await response.json()
-    error.value = null
-  } catch (err) {
-    error.value = err.message
-  }
-}
-
-onMounted(() => fetchDishes())
 </script>
-
 
 
 <template>
@@ -202,29 +174,22 @@ onMounted(() => fetchDishes())
       </div>
     </section>
 
-    <!-- GERICHTE -->
+    <!-- GERICHTE TEASER -->
     <section class="recipes">
       <div class="container">
         <div class="section-header">
           <p class="section-tag">Inspiration</p>
           <h2 class="section-title">Snack und Bowl Bibliothek</h2>
         </div>
-        <div style="text-align: right; margin-bottom: 1.5rem;">
-          <router-link to="/dish/new" class="btn btn-accent">+ Neues Gericht</router-link>
-        </div>
-
-        <DishFilter @search="fetchDishes" />
-
-        <p v-if="error" class="dish-error">{{ error }}</p>
-        <div class="recipes-grid">
-          <DishCard
-            v-for="dish in dishes"
-            :key="dish.id"
-            :dish="dish"
-          />
+        <p style="text-align: center; color: #555; margin-bottom: 1.5rem;">
+          Entdecke alle Rezepte, durchsuche sie und filtere nach Kategorie.
+        </p>
+        <div style="text-align: center;">
+          <router-link to="/gerichte" class="btn btn-accent">Zu den Rezepten →</router-link>
         </div>
       </div>
     </section>
+
 
 
 
