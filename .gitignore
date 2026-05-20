@@ -37,3 +37,7 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Claude Code lokale Notizen (nicht committen)
+memory/
+.claude/

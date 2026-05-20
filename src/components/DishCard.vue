@@ -1,27 +1,25 @@
 <script setup>
+import { CATEGORY_LABELS } from '../config.js'
+
 const props = defineProps({
-  recipe: { type: Object, required: true }
+  dish: { type: Object, required: true }
 })
 </script>
 
 <template>
-  <article class="recipe-card">
-    <img :src="recipe.image" :alt="recipe.name" class="recipe-image">
-    <p class="recipe-category">{{ recipe.mealType?.[0] || recipe.cuisine }}</p>
-    <h3 class="recipe-name">{{ recipe.name }}</h3>
-    <p class="recipe-meta">
-      {{ recipe.caloriesPerServing }} kcal ·
-      {{ (recipe.prepTimeMinutes || 0) + (recipe.cookTimeMinutes || 0) }} Min
-    </p>
-    <router-link :to="`/recipe/${recipe.id}`" class="btn btn-outline">
+  <article class="dish-card">
+    <img :src="dish.imageUrl" :alt="dish.title" class="dish-image">
+    <p class="dish-category">{{ CATEGORY_LABELS[dish.category] || dish.category }}</p>
+    <h3 class="dish-name">{{ dish.title }}</h3>
+    <p class="dish-meta">{{ dish.calories }} kcal</p>
+    <router-link :to="`/dish/${dish.id}`" class="btn btn-outline">
       Details
     </router-link>
   </article>
 </template>
 
-
 <style scoped>
-.recipe-card {
+.dish-card {
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem;
@@ -31,14 +29,14 @@ const props = defineProps({
   gap: 0.5rem;
 }
 
-.recipe-image {
+.dish-image {
   width: 100%;
   height: 180px;
   object-fit: cover;
   border-radius: 8px;
 }
 
-.recipe-category {
+.dish-category {
   font-size: 0.8rem;
   text-transform: uppercase;
   color: #888;
@@ -46,12 +44,12 @@ const props = defineProps({
   letter-spacing: 0.05em;
 }
 
-.recipe-name {
+.dish-name {
   font-size: 1.2rem;
   margin: 0;
 }
 
-.recipe-meta {
+.dish-meta {
   color: #555;
   margin: 0 0 1rem 0;
   font-size: 0.95rem;

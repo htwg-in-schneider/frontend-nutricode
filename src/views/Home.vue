@@ -1,16 +1,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import RecipeCard from '../components/RecipeCard.vue'
+import DishCard from '../components/DishCard.vue'
+import { API_BASE } from '../config.js'
 
-const recipes = ref([])
+const dishes = ref([])
 const error = ref(null)
 
 onMounted(async () => {
   try {
-    const response = await fetch('https://dummyjson.com/recipes')
-    if (!response.ok) throw new Error('Fehler beim Laden der Rezepte')
-    const data = await response.json()
-    recipes.value = data.recipes
+    const response = await fetch(`${API_BASE}/api/dish`)
+    if (!response.ok) throw new Error('Fehler beim Laden der Gerichte')
+    dishes.value = await response.json()
   } catch (err) {
     error.value = err.message
   }
@@ -189,22 +189,24 @@ onMounted(async () => {
       </div>
     </section>
 
-    <!-- REZEPTE -->
+    <!-- GERICHTE -->
     <section class="recipes">
       <div class="container">
         <div class="section-header">
           <p class="section-tag">Inspiration</p>
           <h2 class="section-title">Snack und Bowl Bibliothek</h2>
         </div>
+        <p v-if="error" class="dish-error">{{ error }}</p>
         <div class="recipes-grid">
-          <RecipeCard
-            v-for="recipe in recipes"
-            :key="recipe.id"
-            :recipe="recipe"
+          <DishCard
+            v-for="dish in dishes"
+            :key="dish.id"
+            :dish="dish"
           />
         </div>
       </div>
     </section>
+
 
     <!-- CTA BANNER -->
     <section class="cta-banner"> 
