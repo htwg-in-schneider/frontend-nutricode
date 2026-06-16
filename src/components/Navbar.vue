@@ -1,20 +1,24 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { API_BASE } from '../config.js'
+import { useAuth0 } from '@auth0/auth0-vue'
+import { useRoles } from '../composables/useRoles.js'
 
-const categories = ref([])
-
-onMounted(async () => {
-  try {
-    const response = await fetch(`${API_BASE}/api/category`)
-    categories.value = await response.json()
-  } catch (err) {
-    console.error('Kategorien konnten nicht geladen werden', err)
-  }
-})
+const { loginWithRedirect, logout } = useAuth0()
+const { isAuthenticated, isAdmin, user } = useRoles()
 
 function toggleMenu() {
   document.getElementById('nav-links').classList.toggle('navbar-links-open')
+}
+
+async function login() {
+  try {
+    await loginWithRedirect()
+  } catch (e) {
+    console.error('[Auth0] Login fehlgeschlagen:', e)
+  }
+}
+
+function doLogout() {
+  logout({ logoutParams: { returnTo: window.location.origin + import.meta.env.BASE_URL } })
 }
 </script>
 
@@ -30,12 +34,22 @@ function toggleMenu() {
       <ul class="navbar-links" id="nav-links">
         <li><router-link to="/">Startseite</router-link></li>
         <li><router-link to="/gerichte">Gerichte</router-link></li>
-        <li v-for="cat in categories" :key="cat.name">
-          <router-link :to="{ path: '/gerichte', query: { category: cat.name } }">
-            {{ cat.label }}
-          </router-link>
-        </li>
-        <li><a href="#" class="navbar-cta">Anmelden</a></li>
+        <li><router-link :to="{ path: '/', hash: '#kontakt' }">Kontakt</router-link></li>
+
+        <!-- Eingeloggt: Ernährungsplan, Profil (+ ggf. Admin) und Abmelden -->
+        <template v-if="isAuthenticated">
+          <li><router-link to="/ernaehrungsplan">Ernährungsplan</router-link></li>
+          <li><router-link to="/profil">Profil</router-link></li>
+          <li v-if="isAdmin"><router-link to="/admin">Admin-Bereich</router-link></li>
+          <li v-if="isAdmin" class="navbar-badge">Admin</li>
+          <li class="navbar-greeting">Hallo, {{ user?.name || user?.email }}</li>
+          <li><button type="button" class="navbar-cta" @click="doLogout">Abmelden</button></li>
+        </template>
+
+        <!-- Nicht eingeloggt: Anmelden -->
+        <template v-else>
+          <li><button type="button" class="navbar-cta" @click="login">Anmelden</button></li>
+        </template>
       </ul>
 
     </nav>
@@ -87,13 +101,37 @@ function toggleMenu() {
   padding: 0.5rem 1.2rem;
   background-color: #7CB342;
   color: #ffffff !important;
+  border: none;
   border-radius: 8px;
   font-weight: 700;
   font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .navbar-cta:hover {
   background-color: #558B2F;
+}
+
+/* Begrüßung + Rollen-Badge (eingeloggt) */
+.navbar-greeting {
+  display: flex;
+  align-items: center;
+  color: #6B6B6B;
+  font-size: 0.85rem;
+}
+
+.navbar-badge {
+  display: flex;
+  align-items: center;
+  background-color: rgba(124, 179, 66, 0.15);
+  color: #558B2F;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
 }
 
 /* Hamburger-Button: nur auf Mobile sichtbar */

@@ -470,3 +470,111 @@ a {
   gap: 2rem;
   margin-top: 2rem;
 }
+
+/* ==========================================================
+   KONTAKT – Kontaktformular auf der Startseite (mailto:)
+   ========================================================== */
+.contact {
+  padding: 4rem 0;
+}
+
+.contact-form {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* Name und E-Mail nebeneinander */
+.contact-row {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.contact-row label {
+  flex: 1 1 240px;
+}
+
+.contact-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.contact-form input,
+.contact-form textarea {
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+  outline: none;
+  border-color: #7CB342;
+}
+
+.contact-form textarea {
+  resize: vertical;
+}
+
+.contact-form .btn {
+  align-self: center;
+}
+
+/* Mobile: Name/E-Mail untereinander */
+@media (max-width: 600px) {
+  .contact-row {
+    flex-direction: column;
+  }
+  /* flex-basis zuruecksetzen, sonst werden die Felder im Column-Layout
+     auf 240px Hoehe aufgeblasen und stehen zu weit auseinander */
+  .contact-row label {
+    flex: 1 1 auto;
+  }
+}
+
+/* ==========================================================
+   RECHTSTEXTE – Impressum / Datenschutzerklaerung
+   ========================================================== */
+.legal-page {
+  max-width: 760px;
+  padding: 3rem 1rem 4rem;
+}
+
+.legal-page h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.legal-page h2 {
+  font-size: 1.15rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  color: #558B2F;
+}
+
+.legal-page p {
+  line-height: 1.7;
+  color: #444;
+  margin-bottom: 0.75rem;
+}
+
+.legal-page a {
+  color: #558B2F;
+  text-decoration: underline;
+}
+
+.legal-note {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #888;
+}

@@ -38,6 +38,11 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 
+# Lokale Umgebungsvariablen (Auth0-/API-Konfiguration) – nicht committen
+.env
+.env.*
+!.env.example
+
 # Claude Code lokale Notizen (nicht committen)
 memory/
 .claude/

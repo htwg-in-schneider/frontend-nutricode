@@ -13,3 +13,25 @@ export const CATEGORY_LABELS = {
   SNACK: 'Snack',
   DESSERT: 'Nachtisch',
 }
+
+// ===== Ernährungsplan-Wizard (komplexer Vorgang) =====
+
+// Ziele eines Ernährungsplans (Schritt 1)
+export const GOAL_LABELS = {
+  LOSE_WEIGHT: 'Abnehmen',
+  MAINTAIN: 'Gewicht halten',
+  GAIN_MUSCLE: 'Muskelaufbau',
+}
+
+// Status eines Plans im mehrstufigen Vorgang
+export const PLAN_STATUS_LABELS = {
+  DRAFT: 'Entwurf',
+  COMPLETED: 'Abgeschlossen',
+}
+
+// Feste Tagesstruktur: drei Mahlzeiten je Tag (Schritt 3)
+export const MEAL_SLOTS = [
+  { key: 'BREAKFAST', label: 'Frühstück' },
+  { key: 'LUNCH', label: 'Mittagessen' },
+  { key: 'DINNER', label: 'Abendessen' },
+]

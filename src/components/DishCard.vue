@@ -1,9 +1,13 @@
 <script setup>
 import { CATEGORY_LABELS } from '../config.js'
+import { useRoles } from '../composables/useRoles.js'
 
 const props = defineProps({
   dish: { type: Object, required: true }
 })
+
+// Bearbeiten nur für eingeloggte Nutzer:innen (Admin = Vorlagen, User = eigene Kopien)
+const { isAuthenticated } = useRoles()
 </script>
 
 <template>
@@ -14,7 +18,7 @@ const props = defineProps({
     <p class="dish-meta">{{ dish.calories }} kcal</p>
     <div class="dish-card-actions">
       <router-link :to="`/dish/${dish.id}`" class="btn btn-outline">Details</router-link>
-      <router-link :to="`/dish/${dish.id}/edit`" class="btn btn-accent">Bearbeiten</router-link>
+      <router-link v-if="isAuthenticated" :to="`/dish/${dish.id}/edit`" class="btn btn-accent">Bearbeiten</router-link>
     </div>
 
   </article>

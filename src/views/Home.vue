@@ -1,5 +1,26 @@
 <script setup>
+import { ref } from 'vue'
 
+// Empfaenger-Adresse, an die die Kontaktanfrage geschickt wird
+// (Platzhalter – vor Veroeffentlichung durch echte Adresse ersetzen)
+const CONTACT_EMAIL = 'kontakt@nutricode.de'
+
+// Eingabefelder des Kontaktformulars
+const name = ref('')
+const email = ref('')
+const message = ref('')
+
+// Baut aus den Formulardaten einen mailto:-Link und oeffnet damit
+// das E-Mail-Programm des Nutzers mit vorausgefuellter Nachricht.
+// Es wird KEINE Mail vom Server verschickt – der Nutzer klickt im
+// eigenen Mailprogramm selbst auf "Senden".
+function sendMail() {
+  const subject = encodeURIComponent(`Kontaktanfrage von ${name.value}`)
+  const body = encodeURIComponent(
+    `Name: ${name.value}\nE-Mail: ${email.value}\n\n${message.value}`
+  )
+  window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`
+}
 </script>
 
 
@@ -193,8 +214,36 @@
 
 
 
+    <!-- KONTAKT -->
+    <section class="contact" id="kontakt">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-tag">Kontakt</p>
+          <h2 class="section-title">Schreib uns eine Nachricht</h2>
+        </div>
+
+        <form class="contact-form" @submit.prevent="sendMail">
+          <div class="contact-row">
+            <label>
+              Name
+              <input v-model="name" type="text" placeholder="Dein Name" required>
+            </label>
+            <label>
+              E-Mail
+              <input v-model="email" type="email" placeholder="dein@email.de" required>
+            </label>
+          </div>
+          <label>
+            Nachricht
+            <textarea v-model="message" rows="5" placeholder="Deine Nachricht an uns ..." required></textarea>
+          </label>
+          <button type="submit" class="btn btn-accent">Nachricht senden →</button>
+        </form>
+      </div>
+    </section>
+
     <!-- CTA BANNER -->
-    <section class="cta-banner"> 
+    <section class="cta-banner">
      <div class="container">
         <h2 class="cta-heading">Bereit für deinen <em>Ernährungsplan</em>?</h2>
         <p class="cta-sub">Personalisiert. KI-gestützt. Immer dabei.</p>

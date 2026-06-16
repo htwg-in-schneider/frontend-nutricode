@@ -3,8 +3,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
+import { useApi } from '../composables/useApi.js'
 
 const router = useRouter()
+const { apiFetch } = useApi()
 
 const dish = ref({
   title: '',
@@ -37,7 +39,7 @@ function removeIngredientRow(index) {
 async function createDish() {
   try {
     // 1) Gericht anlegen
-    const response = await fetch(`${API_BASE}/api/dish`, {
+    const response = await apiFetch('/api/dish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dish.value)
@@ -48,7 +50,7 @@ async function createDish() {
     // 2) Zutaten anlegen (1:n) – jede mit dem neuen Gericht verknüpfen
     for (const ing of ingredients.value) {
       if (!ing.name) continue
-      await fetch(`${API_BASE}/api/ingredient`, {
+      await apiFetch('/api/ingredient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -3,9 +3,11 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
+import { useApi } from '../composables/useApi.js'
 
 const route = useRoute()
 const router = useRouter()
+const { apiFetch } = useApi()
 
 const dish = ref({
   title: '',
@@ -25,8 +27,10 @@ async function loadIngredients() {
 
 onMounted(async () => {
   try {
+    // Gericht mit Token laden -> eigenes Gericht (User) bzw. Vorlage (Admin).
+    // Kategorien sind öffentlich und brauchen kein Token.
     const [dishRes, catRes] = await Promise.all([
-      fetch(`${API_BASE}/api/dish/${route.params.id}`),
+      apiFetch(`/api/dish/${route.params.id}`),
       fetch(`${API_BASE}/api/category`)
     ])
     if (!dishRes.ok) throw new Error('Gericht nicht gefunden')
@@ -41,7 +45,7 @@ onMounted(async () => {
 
 async function updateDish() {
   try {
-    const response = await fetch(`${API_BASE}/api/dish/${route.params.id}`, {
+    const response = await apiFetch(`/api/dish/${route.params.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dish.value)
@@ -57,7 +61,7 @@ async function updateDish() {
 async function addIngredient() {
   if (!newIngredient.value.name) return
   try {
-    const res = await fetch(`${API_BASE}/api/ingredient`, {
+    const res = await apiFetch('/api/ingredient', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -76,7 +80,7 @@ async function addIngredient() {
 
 async function removeIngredient(id) {
   try {
-    const res = await fetch(`${API_BASE}/api/ingredient/${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/ingredient/${id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error('Zutat konnte nicht gelöscht werden')
     await loadIngredients()
   } catch (err) {
@@ -87,7 +91,7 @@ async function removeIngredient(id) {
 async function deleteDish() {
   if (!confirm('Dieses Gericht wirklich löschen?')) return
   try {
-    const response = await fetch(`${API_BASE}/api/dish/${route.params.id}`, {
+    const response = await apiFetch(`/api/dish/${route.params.id}`, {
       method: 'DELETE'
     })
     if (!response.ok) throw new Error('Fehler beim Löschen')

@@ -1,19 +1,25 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
-import { API_BASE, CATEGORY_LABELS } from '../config.js'
+import { CATEGORY_LABELS } from '../config.js'
 import DishIngredients from '../components/DishIngredients.vue'
+import { useApi } from '../composables/useApi.js'
+import { useRoles } from '../composables/useRoles.js'
 
 
 const route = useRoute()
 const router = useRouter()
+const { apiFetch } = useApi()
+const { isLoading, isAuthenticated } = useRoles()
 const dish = ref(null)
 const error = ref(null)
 
 async function loadDish(id) {
   try {
-    const response = await fetch(`${API_BASE}/api/dish/${id}`)
+    // apiFetch sendet bei eingeloggten Nutzer:innen das Token -> eigenes Gericht;
+    // anonym wird das globale Vorlagen-Gericht geladen.
+    const response = await apiFetch(`/api/dish/${id}`)
     if (!response.ok) throw new Error('Gericht nicht gefunden')
     dish.value = await response.json()
     error.value = null
@@ -23,8 +29,15 @@ async function loadDish(id) {
   }
 }
 
-onMounted(() => loadDish(route.params.id))
-watch(() => route.params.id, (newId) => newId && loadDish(newId))
+// Erst laden, wenn Auth0 bereit ist; bei Login/Logout und id-Wechsel neu laden.
+watch(
+  [isLoading, isAuthenticated, () => route.params.id],
+  ([loading, , id]) => {
+    if (loading || !id) return
+    loadDish(id)
+  },
+  { immediate: true }
+)
 
 function goBack() {
   router.back()
