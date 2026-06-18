@@ -56,7 +56,7 @@ function formatDate(iso) {
     <p v-else-if="error" class="ap-msg err">{{ error }}</p>
 
     <div v-else class="ap-table-wrap">
-      <table class="ap-table">
+      <table class="ap-table responsive-table">
         <thead>
           <tr>
             <th>Besitzer:in</th>
@@ -71,20 +71,20 @@ function formatDate(iso) {
         </thead>
         <tbody>
           <tr v-for="p in plans" :key="p.id" class="ap-row" @click="openDetail(p)">
-            <td>{{ p.ownerName || p.ownerId }}</td>
-            <td>{{ p.name || '—' }}</td>
-            <td>{{ GOAL_LABELS[p.goal] || '—' }}</td>
-            <td>
+            <td data-label="Besitzer:in">{{ p.ownerName || p.ownerId }}</td>
+            <td data-label="Plan">{{ p.name || '—' }}</td>
+            <td data-label="Ziel">{{ GOAL_LABELS[p.goal] || '—' }}</td>
+            <td data-label="Status">
               <span class="status-badge" :class="p.status === 'COMPLETED' ? 'is-done' : 'is-draft'">
                 {{ PLAN_STATUS_LABELS[p.status] || p.status }}
               </span>
             </td>
-            <td>
+            <td data-label="Schritt">
               <span class="step-pill">{{ p.currentStep }}/4</span>
             </td>
-            <td>{{ p.entries ? p.entries.length : 0 }}</td>
-            <td>{{ formatDate(p.createdAt) }}</td>
-            <td>{{ formatDate(p.updatedAt) }}</td>
+            <td data-label="Gerichte">{{ p.entries ? p.entries.length : 0 }}</td>
+            <td data-label="Erstellt">{{ formatDate(p.createdAt) }}</td>
+            <td data-label="Zuletzt">{{ formatDate(p.updatedAt) }}</td>
           </tr>
           <tr v-if="plans.length === 0">
             <td colspan="8" class="ap-empty">Noch keine Vorgänge vorhanden.</td>

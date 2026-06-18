@@ -13,6 +13,8 @@ import MealPlanList from '../views/MealPlanList.vue'
 import MealPlanWizard from '../views/MealPlanWizard.vue'
 import AdminMealPlans from '../views/AdminMealPlans.vue'
 import AdminMealPlanDetail from '../views/AdminMealPlanDetail.vue'
+import AdminUsers from '../views/AdminUsers.vue'
+import AdminDishes from '../views/AdminDishes.vue'
 import { adminGuard } from './adminGuard.js'
 
 const router = createRouter({
@@ -29,6 +31,9 @@ const router = createRouter({
     { path: '/ernaehrungsplan/neu', name: 'mealplan-new', component: MealPlanWizard, beforeEnter: authGuard },
     { path: '/ernaehrungsplan/:id', name: 'mealplan-edit', component: MealPlanWizard, beforeEnter: authGuard },
     { path: '/admin', name: 'admin', component: Admin, beforeEnter: adminGuard },
+    // Stammdatenverwaltung (Admin-Bereich)
+    { path: '/admin/gerichte', name: 'admin-dishes', component: AdminDishes, beforeEnter: adminGuard },
+    { path: '/admin/benutzer', name: 'admin-users', component: AdminUsers, beforeEnter: adminGuard },
     // Admin-Nachverfolgung der Vorgänge
     { path: '/admin/ernaehrungsplaene', name: 'admin-mealplans', component: AdminMealPlans, beforeEnter: adminGuard },
     { path: '/admin/ernaehrungsplaene/:id', name: 'admin-mealplan-detail', component: AdminMealPlanDetail, beforeEnter: adminGuard },

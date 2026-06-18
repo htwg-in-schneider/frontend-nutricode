@@ -576,4 +576,25 @@ function goTo(nr) {
 .muted {
   color: #999;
 }
+
+/* Mobile: Stepper kompakt (nur Nummern), Aktionen volle Breite */
+@media (max-width: 540px) {
+  .stepper li {
+    min-width: 0;
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem;
+  }
+  .stepper-title {
+    display: none;
+  }
+  .wizard-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .slot-label {
+    width: auto;
+    display: block;
+  }
+}
 </style>

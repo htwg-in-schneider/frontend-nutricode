@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(ls \"C:\\\\Users\\\\User\\\\Semester6\\\\WEB-TEC\\\\NutriCode\\\\frontend-static-nutricode\")",
-      "Read(//c/Users/User/Semester6/WEB-TEC/NutriCode/frontend-static-nutricode/**)"
+      "Read(//c/Users/User/Semester6/WEB-TEC/NutriCode/frontend-static-nutricode/**)",
+      "Bash(ls -la \"C:\\\\Users\\\\User\\\\Semester6\\\\WEB-TEC\\\\Abgaben\\\\04\")",
+      "Read(//c/Users/User/Semester6/WEB-TEC/Abgaben/04/**)",
+      "Bash(rm -rf \"C:\\\\Users\\\\User\\\\Semester6\\\\WEB-TEC\\\\Abgaben\\\\04\\\\_tmp\" && echo cleaned)",
+      "Read(//c/Users/User/Semester6/WEB-TEC/NutriCode/backend-nutricode/**)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\User\\Semester6\\WEB-TEC\\Abgaben\\04\\_tmp"
     ]
   }
 }

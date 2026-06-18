@@ -40,7 +40,7 @@ function sendMail() {
             mithilfe von KI einen personalisierten Ernährungsplan.
           </p>
           <div class="hero-actions">
-            <a href="#" class="btn btn-primary">Jetzt berechnen →</a>
+            <router-link to="/ernaehrungsplan" class="btn btn-primary">Jetzt berechnen →</router-link>
             <a href="#features" class="btn btn-outline">Mehr erfahren</a>
           </div>
         </div>
@@ -202,10 +202,10 @@ function sendMail() {
           <p class="section-tag">Inspiration</p>
           <h2 class="section-title">Snack und Bowl Bibliothek</h2>
         </div>
-        <p style="text-align: center; color: #555; margin-bottom: 1.5rem;">
+        <p class="recipes-intro">
           Entdecke alle Rezepte, durchsuche sie und filtere nach Kategorie.
         </p>
-        <div style="text-align: center;">
+        <div class="recipes-cta">
           <router-link to="/gerichte" class="btn btn-accent">Zu den Rezepten →</router-link>
         </div>
       </div>
@@ -247,7 +247,7 @@ function sendMail() {
      <div class="container">
         <h2 class="cta-heading">Bereit für deinen <em>Ernährungsplan</em>?</h2>
         <p class="cta-sub">Personalisiert. KI-gestützt. Immer dabei.</p>
-        <a href="#" class="btn btn-primary">Kostenlos starten →</a>
+        <router-link to="/ernaehrungsplan" class="btn btn-primary">Kostenlos starten →</router-link>
      </div>
     </section>
   </div>

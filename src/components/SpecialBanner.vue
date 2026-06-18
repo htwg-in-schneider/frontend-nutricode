@@ -6,7 +6,10 @@ const bannerStore = useBannerStore()
 
 <template>
   <div v-if="bannerStore.isVisible" class="special-banner">
-    <p>Neu: Generiere deinen KI-gestützten Ernährungsplan in unter 60 Sekunden.</p>
+    <p>
+      Neu: Generiere deinen KI-gestützten Ernährungsplan in unter 60 Sekunden.
+      <router-link to="/ernaehrungsplan" class="banner-link">Jetzt ausprobieren →</router-link>
+    </p>
     <button class="banner-close" @click="bannerStore.hideBanner" aria-label="Schließen">✕</button>
   </div>
 </template>
@@ -25,6 +28,15 @@ const bannerStore = useBannerStore()
 }
 .special-banner p {
   margin: 0;
+}
+.banner-link {
+  color: #9CCC65;
+  font-weight: 700;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.banner-link:hover {
+  color: #fff;
 }
 .banner-close {
   background: transparent;

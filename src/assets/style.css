@@ -471,6 +471,16 @@ a {
   margin-top: 2rem;
 }
 
+.recipes-intro {
+  text-align: center;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.recipes-cta {
+  text-align: center;
+}
+
 /* ==========================================================
    KONTAKT – Kontaktformular auf der Startseite (mailto:)
    ========================================================== */
@@ -577,4 +587,73 @@ a {
   margin-top: 2rem;
   font-size: 0.85rem;
   color: #888;
+}
+
+/* ==========================================================
+   FOKUS-STILE – sichtbare Tastatur-Navigation (Usability/A11y)
+   ========================================================== */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #558B2F;
+  outline-offset: 2px;
+}
+
+/* ==========================================================
+   RESPONSIVE TABELLEN – auf Smartphones als gestapelte Karten.
+   Tabellen mit class="responsive-table" zeigen je Zeile eine Karte;
+   die Spaltenbezeichnung kommt aus dem data-label-Attribut der Zelle.
+   !important, um die komponenteneigenen (scoped) Tabellen-Stile gezielt
+   nur im Mobile-Layout zu überschreiben.
+   ========================================================== */
+@media (max-width: 640px) {
+  table.responsive-table {
+    min-width: 0 !important;
+  }
+  table.responsive-table thead {
+    display: none !important;
+  }
+  table.responsive-table tbody tr {
+    display: block !important;
+    margin-bottom: 1rem;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 0.4rem 0.9rem;
+  }
+  table.responsive-table tbody td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 0 !important;
+    border: none !important;
+    text-align: right;
+  }
+  table.responsive-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #558B2F;
+    text-align: left;
+    flex-shrink: 0;
+  }
+  /* Aktionszellen: volle Breite, Buttons links, ohne Label */
+  table.responsive-table tbody td.cell-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  table.responsive-table tbody td.cell-actions::before,
+  table.responsive-table tbody td.cell-plain::before {
+    content: none;
+  }
+  /* Hinweis-/Leerzeilen (colspan) zentriert ohne Label */
+  table.responsive-table tbody td[colspan] {
+    justify-content: center;
+    text-align: center;
+  }
+  table.responsive-table tbody td[colspan]::before {
+    content: none;
+  }
 }

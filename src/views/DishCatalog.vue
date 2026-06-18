@@ -74,7 +74,7 @@ watch(
       </template>
     </p>
 
-    <div v-if="isAuthenticated" style="text-align: right; margin-bottom: 1.5rem;">
+    <div v-if="isAuthenticated" class="catalog-actions">
       <router-link to="/dish/new" class="btn btn-accent">+ Neues Gericht</router-link>
     </div>
 
@@ -104,5 +104,9 @@ watch(
   color: #555;
   font-size: 0.9rem;
   margin: 0 0 1.5rem 0;
+}
+.catalog-actions {
+  text-align: right;
+  margin-bottom: 1.5rem;
 }
 </style>
