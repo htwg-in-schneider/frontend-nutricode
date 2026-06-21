@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '../composables/useApi.js'
+import { readApiError } from '../utils/apiError.js'
 
 /**
  * Stammdaten: Benutzerverwaltung (nur ADMIN). Anzeigen, Durchsuchen und
@@ -72,7 +73,7 @@ async function saveEdit(u) {
         role: draft.value.role,
       }),
     })
-    if (!res.ok) throw new Error('Speichern fehlgeschlagen.')
+    if (!res.ok) throw new Error(await readApiError(res, 'Speichern fehlgeschlagen.'))
     const updated = await res.json()
     const i = users.value.findIndex((x) => x.oauthId === updated.oauthId)
     if (i !== -1) users.value[i] = updated

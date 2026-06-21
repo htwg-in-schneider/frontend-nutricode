@@ -3,6 +3,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { useApi } from '../composables/useApi.js'
+import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
 
 /**
@@ -118,7 +119,7 @@ async function saveStep1() {
         headers: { 'Content-Type': 'application/json' },
         body,
       })
-      if (!res.ok) throw new Error('Plan konnte nicht angelegt werden.')
+      if (!res.ok) throw new Error(await readApiError(res, 'Plan konnte nicht angelegt werden.'))
       const p = await res.json()
       syncFromPlan(p)
       router.replace(`/ernaehrungsplan/${p.id}`)
@@ -128,7 +129,7 @@ async function saveStep1() {
         headers: { 'Content-Type': 'application/json' },
         body,
       })
-      if (!res.ok) throw new Error('Schritt 1 konnte nicht gespeichert werden.')
+      if (!res.ok) throw new Error(await readApiError(res, 'Schritt 1 konnte nicht gespeichert werden.'))
       syncFromPlan(await res.json())
     }
     step.value = 2
@@ -148,7 +149,7 @@ async function saveStep2() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetCalories: Number(form.targetCalories) }),
     })
-    if (!res.ok) throw new Error('Schritt 2 konnte nicht gespeichert werden.')
+    if (!res.ok) throw new Error(await readApiError(res, 'Schritt 2 konnte nicht gespeichert werden.'))
     syncFromPlan(await res.json())
     step.value = 3
   } catch (e) {
@@ -178,7 +179,7 @@ async function saveStep3() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(buildEntries()),
     })
-    if (!res.ok) throw new Error('Schritt 3 konnte nicht gespeichert werden.')
+    if (!res.ok) throw new Error(await readApiError(res, 'Schritt 3 konnte nicht gespeichert werden.'))
     syncFromPlan(await res.json())
     step.value = 4
   } catch (e) {
@@ -193,7 +194,7 @@ async function autofill() {
   saving.value = true
   try {
     const res = await apiFetch(`/api/mealplan/${plan.value.id}/autofill`, { method: 'POST' })
-    if (!res.ok) throw new Error('Vorschlag konnte nicht erzeugt werden.')
+    if (!res.ok) throw new Error(await readApiError(res, 'Vorschlag konnte nicht erzeugt werden.'))
     syncFromPlan(await res.json())
   } catch (e) {
     error.value = e.message
@@ -207,7 +208,7 @@ async function complete() {
   saving.value = true
   try {
     const res = await apiFetch(`/api/mealplan/${plan.value.id}/complete`, { method: 'POST' })
-    if (!res.ok) throw new Error('Plan konnte nicht abgeschlossen werden.')
+    if (!res.ok) throw new Error(await readApiError(res, 'Plan konnte nicht abgeschlossen werden.'))
     router.push('/ernaehrungsplan')
   } catch (e) {
     error.value = e.message
@@ -271,7 +272,7 @@ function goTo(nr) {
       <form v-else-if="step === 2" class="wizard-form" @submit.prevent="saveStep2">
         <label>
           Zielkalorien pro Tag (kcal)
-          <input v-model.number="form.targetCalories" type="number" min="0" step="50" required />
+          <input v-model.number="form.targetCalories" type="number" min="1" max="10000" step="50" required />
         </label>
         <p class="wizard-hint">
           Richtwert je Mahlzeit: ca. {{ Math.round(form.targetCalories / 3) }} kcal

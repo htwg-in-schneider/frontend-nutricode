@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useApi } from '../composables/useApi.js'
 import { useRoles } from '../composables/useRoles.js'
+import { readApiError } from '../utils/apiError.js'
 import Button from '../components/Button.vue'
 
 const { apiFetch } = useApi()
@@ -33,7 +34,7 @@ async function saveProfile() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: profile.value.name, address: profile.value.address })
     })
-    if (!res.ok) throw new Error('Speichern fehlgeschlagen')
+    if (!res.ok) throw new Error(await readApiError(res, 'Speichern fehlgeschlagen'))
     profile.value = await res.json()
     saved.value = true
   } catch (err) {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
 import { useApi } from '../composables/useApi.js'
+import { readApiError } from '../utils/apiError.js'
 
 const router = useRouter()
 const { apiFetch } = useApi()
@@ -44,13 +45,13 @@ async function createDish() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dish.value)
     })
-    if (!response.ok) throw new Error('Fehler beim Anlegen des Gerichts')
+    if (!response.ok) throw new Error(await readApiError(response, 'Fehler beim Anlegen des Gerichts'))
     const created = await response.json()
 
     // 2) Zutaten anlegen (1:n) – jede mit dem neuen Gericht verknüpfen
     for (const ing of ingredients.value) {
       if (!ing.name) continue
-      await apiFetch('/api/ingredient', {
+      const ingRes = await apiFetch('/api/ingredient', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,6 +60,7 @@ async function createDish() {
           dish: { id: created.id }
         })
       })
+      if (!ingRes.ok) throw new Error(await readApiError(ingRes, 'Zutat konnte nicht gespeichert werden'))
     }
 
     alert('Gericht erfolgreich angelegt!')
@@ -83,7 +85,7 @@ async function createDish() {
       </label>
       <label>
         Kalorien
-        <input v-model.number="dish.calories" type="number" min="0" required>
+        <input v-model.number="dish.calories" type="number" min="0" max="10000" required>
       </label>
       <label>
         Bild-URL

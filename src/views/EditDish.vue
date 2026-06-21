@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
 import { useApi } from '../composables/useApi.js'
+import { readApiError } from '../utils/apiError.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -50,7 +51,7 @@ async function updateDish() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(dish.value)
     })
-    if (!response.ok) throw new Error('Fehler beim Speichern')
+    if (!response.ok) throw new Error(await readApiError(response, 'Fehler beim Speichern'))
     alert('Gericht gespeichert!')
     router.push(`/dish/${route.params.id}`)
   } catch (err) {
@@ -70,7 +71,7 @@ async function addIngredient() {
         dish: { id: route.params.id }
       })
     })
-    if (!res.ok) throw new Error('Zutat konnte nicht hinzugefügt werden')
+    if (!res.ok) throw new Error(await readApiError(res, 'Zutat konnte nicht hinzugefügt werden'))
     newIngredient.value = { name: '', amount: '' }
     await loadIngredients()
   } catch (err) {
@@ -81,7 +82,7 @@ async function addIngredient() {
 async function removeIngredient(id) {
   try {
     const res = await apiFetch(`/api/ingredient/${id}`, { method: 'DELETE' })
-    if (!res.ok) throw new Error('Zutat konnte nicht gelöscht werden')
+    if (!res.ok) throw new Error(await readApiError(res, 'Zutat konnte nicht gelöscht werden'))
     await loadIngredients()
   } catch (err) {
     alert(err.message)
@@ -94,7 +95,7 @@ async function deleteDish() {
     const response = await apiFetch(`/api/dish/${route.params.id}`, {
       method: 'DELETE'
     })
-    if (!response.ok) throw new Error('Fehler beim Löschen')
+    if (!response.ok) throw new Error(await readApiError(response, 'Fehler beim Löschen'))
     alert('Gericht gelöscht!')
     router.push('/gerichte')
   } catch (err) {
@@ -117,7 +118,7 @@ async function deleteDish() {
       </label>
       <label>
         Kalorien
-        <input v-model.number="dish.calories" type="number" min="0" required>
+        <input v-model.number="dish.calories" type="number" min="0" max="10000" required>
       </label>
       <label>
         Bild-URL
