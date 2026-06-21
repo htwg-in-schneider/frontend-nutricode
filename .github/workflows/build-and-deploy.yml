@@ -28,7 +28,13 @@ jobs:
       
     - name: Build Vue App
       run: npm run build
-    
+
+    # SPA-Fallback: GitHub Pages liefert 404.html für unbekannte Pfade aus.
+    # Als Kopie der index.html übernimmt dann der Vue-Router das Routing
+    # (sonst 404 beim Neuladen tiefer Links wie /admin oder /ernaehrungsplan).
+    - name: SPA 404-Fallback
+      run: cp dist/index.html dist/404.html
+
     # Upload the build output (usually 'dist') as an artifact
     - name: Upload production artifact 📤
       uses: actions/upload-pages-artifact@v3
