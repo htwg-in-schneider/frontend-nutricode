@@ -128,7 +128,7 @@ function formatDate(iso) {
   color: #555;
 }
 .plans-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 .plans-empty {
@@ -192,7 +192,7 @@ function formatDate(iso) {
 }
 .status-badge.is-done {
   background: rgba(124, 179, 66, 0.18);
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .status-badge.is-draft {
   background: rgba(255, 167, 38, 0.18);

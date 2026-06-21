@@ -73,11 +73,11 @@ function doLogout() {
 .navbar-brand {
   font-family: 'Playfair Display', Georgia, serif;
   font-size: 1.5rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 
 .navbar-brand span {
-  color: #7CB342;
+  color: var(--color-primary);
 }
 
 .navbar-links {
@@ -93,13 +93,13 @@ function doLogout() {
 }
 
 .navbar-links a:hover {
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 
 /* Anmelden-Button in der Navbar */
 .navbar-cta {
   padding: 0.5rem 1.2rem;
-  background-color: #7CB342;
+  background-color: var(--color-primary);
   color: #ffffff !important;
   border: none;
   border-radius: 8px;
@@ -110,7 +110,7 @@ function doLogout() {
 }
 
 .navbar-cta:hover {
-  background-color: #558B2F;
+  background-color: var(--color-primary-dark);
 }
 
 /* Begrüßung + Rollen-Badge (eingeloggt) */
@@ -125,7 +125,7 @@ function doLogout() {
   display: flex;
   align-items: center;
   background-color: rgba(124, 179, 66, 0.15);
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.05em;

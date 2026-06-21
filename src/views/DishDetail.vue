@@ -55,7 +55,6 @@ function goBack() {
         <h1>{{ dish.title }}</h1>
         <p class="dish-meta">{{ dish.calories }} kcal</p>
         <p class="dish-description">{{ dish.description }}</p>
-        <p class="dish-description">{{ dish.description }}</p>
 
         <DishIngredients :dishId="dish.id" :key="dish.id" />
 

@@ -76,7 +76,7 @@ const areas = [
 }
 .admin-link-card strong {
   display: block;
-  color: #558B2F;
+  color: var(--color-primary-dark);
   margin-bottom: 0.25rem;
   font-size: 1.05rem;
 }
@@ -86,6 +86,6 @@ const areas = [
 }
 .admin-link-arrow {
   font-size: 1.4rem;
-  color: #7CB342;
+  color: var(--color-primary);
 }
 </style>

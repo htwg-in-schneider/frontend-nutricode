@@ -108,7 +108,7 @@ function formatDate(iso) {
 }
 .ap-back {
   font-size: 0.9rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .ap-sub {
   color: #555;
@@ -118,7 +118,7 @@ function formatDate(iso) {
   color: #555;
 }
 .ap-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -138,7 +138,7 @@ function formatDate(iso) {
   font-size: 0.92rem;
 }
 .ap-table th {
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -164,7 +164,7 @@ function formatDate(iso) {
 }
 .status-badge.is-done {
   background: rgba(124, 179, 66, 0.18);
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .status-badge.is-draft {
   background: rgba(255, 167, 38, 0.18);

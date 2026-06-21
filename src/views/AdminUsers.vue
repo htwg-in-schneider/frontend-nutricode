@@ -173,7 +173,7 @@ async function saveEdit(u) {
 }
 .au-back {
   font-size: 0.9rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .au-sub {
   color: #555;
@@ -192,11 +192,11 @@ async function saveEdit(u) {
   color: #555;
 }
 .au-msg.ok {
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-weight: 600;
 }
 .au-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -217,7 +217,7 @@ async function saveEdit(u) {
   vertical-align: middle;
 }
 .au-table th {
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -257,7 +257,7 @@ async function saveEdit(u) {
 }
 .role-admin {
   background: rgba(124, 179, 66, 0.18);
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .role-user {
   background: rgba(0, 0, 0, 0.06);

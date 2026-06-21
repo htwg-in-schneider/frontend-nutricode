@@ -5,6 +5,7 @@ import Button from '../components/Button.vue'
 import { useApi } from '../composables/useApi.js'
 import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
+import { LIMITS } from '../constants/validation.js'
 
 /**
  * Ernährungsplan-Wizard = der komplexe, mehrstufige Vorgang.
@@ -261,7 +262,7 @@ function goTo(nr) {
         </label>
         <label>
           Anzahl Tage (1–7)
-          <input v-model.number="form.days" type="number" min="1" max="7" required />
+          <input v-model.number="form.days" type="number" :min="LIMITS.DAYS_MIN" :max="LIMITS.DAYS_MAX" required />
         </label>
         <div class="wizard-actions">
           <Button type="submit" variant="accent">{{ saving ? 'Speichert …' : 'Weiter' }}</Button>
@@ -272,7 +273,7 @@ function goTo(nr) {
       <form v-else-if="step === 2" class="wizard-form" @submit.prevent="saveStep2">
         <label>
           Zielkalorien pro Tag (kcal)
-          <input v-model.number="form.targetCalories" type="number" min="1" max="10000" step="50" required />
+          <input v-model.number="form.targetCalories" type="number" :min="LIMITS.CALORIES_MIN" :max="LIMITS.CALORIES_MAX" step="50" required />
         </label>
         <p class="wizard-hint">
           Richtwert je Mahlzeit: ca. {{ Math.round(form.targetCalories / 3) }} kcal
@@ -392,7 +393,7 @@ function goTo(nr) {
   color: #6B6B6B;
 }
 .wizard-exit:hover {
-  color: #c62828;
+  color: var(--color-danger);
 }
 
 /* Stepper */
@@ -418,10 +419,10 @@ function goTo(nr) {
 }
 .stepper li.active {
   background: rgba(124, 179, 66, 0.15);
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .stepper li.done {
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .stepper li.clickable {
   cursor: pointer;
@@ -439,9 +440,9 @@ function goTo(nr) {
 }
 .stepper li.active .stepper-nr,
 .stepper li.done .stepper-nr {
-  background: #7CB342;
+  background: var(--color-primary);
   color: #fff;
-  border-color: #7CB342;
+  border-color: var(--color-primary);
 }
 
 /* Formular */
@@ -479,7 +480,7 @@ function goTo(nr) {
   color: #555;
 }
 .wizard-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -507,7 +508,7 @@ function goTo(nr) {
   vertical-align: middle;
 }
 .plan-grid th {
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -528,13 +529,13 @@ function goTo(nr) {
   white-space: nowrap;
 }
 .day-sum.over {
-  color: #c62828;
+  color: var(--color-danger);
 }
 
 /* Schritt 4: Zusammenfassung */
 .completed-banner {
   background: rgba(124, 179, 66, 0.15);
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-weight: 700;
   padding: 0.7rem 1rem;
   border-radius: 8px;
@@ -559,7 +560,7 @@ function goTo(nr) {
 }
 .summary-day-sum {
   font-size: 0.85rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-weight: 700;
 }
 .summary-day ul {

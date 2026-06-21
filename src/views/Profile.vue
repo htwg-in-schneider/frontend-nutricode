@@ -119,7 +119,7 @@ async function saveProfile() {
 .profile-form input:focus,
 .profile-form textarea:focus {
   outline: none;
-  border-color: #7CB342;
+  border-color: var(--color-primary);
 }
 .profile-form input:disabled {
   background: #f3f3f3;
@@ -133,9 +133,9 @@ async function saveProfile() {
   font-weight: 600;
 }
 .profile-msg.ok {
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .profile-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
 }
 </style>

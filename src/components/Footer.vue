@@ -19,7 +19,7 @@ import FooterLink from './FooterLink.vue'
 
 <style scoped>
 .footer {
-  background-color: #558B2F;
+  background-color: var(--color-primary-dark);
   color: #ffffff;
   padding: 2rem 0;
 }

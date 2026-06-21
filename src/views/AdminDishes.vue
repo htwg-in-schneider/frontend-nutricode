@@ -132,7 +132,7 @@ async function remove(dish) {
 }
 .ad-back {
   font-size: 0.9rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .ad-sub {
   color: #555;
@@ -168,7 +168,7 @@ async function remove(dish) {
   color: #555;
 }
 .ad-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -189,7 +189,7 @@ async function remove(dish) {
   vertical-align: middle;
 }
 .ad-table th {
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;

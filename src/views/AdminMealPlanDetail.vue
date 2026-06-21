@@ -134,13 +134,13 @@ function formatDate(iso) {
 }
 .apd-back {
   font-size: 0.9rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .apd-info {
   color: #555;
 }
 .apd-msg.err {
-  color: #c62828;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -165,7 +165,7 @@ function formatDate(iso) {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .apd-meta dd {
   font-weight: 600;
@@ -200,7 +200,7 @@ function formatDate(iso) {
 }
 .apd-day-sum {
   font-size: 0.8rem;
-  color: #558B2F;
+  color: var(--color-primary-dark);
   font-weight: 700;
 }
 .apd-day ul {
@@ -245,7 +245,7 @@ function formatDate(iso) {
   width: 1.8rem;
   height: 1.8rem;
   border-radius: 999px;
-  background: #7CB342;
+  background: var(--color-primary);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -272,7 +272,7 @@ function formatDate(iso) {
 }
 .status-badge.is-done {
   background: rgba(124, 179, 66, 0.18);
-  color: #558B2F;
+  color: var(--color-primary-dark);
 }
 .status-badge.is-draft {
   background: rgba(255, 167, 38, 0.18);

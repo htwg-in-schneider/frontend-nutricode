@@ -98,7 +98,7 @@ watch(
 }
 .catalog-hint {
   background: #f7faf2;
-  border-left: 3px solid #7CB342;
+  border-left: 3px solid var(--color-primary);
   padding: 0.8rem 1rem;
   border-radius: 6px;
   color: #555;
