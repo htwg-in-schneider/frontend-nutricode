@@ -22,3 +22,14 @@ export const GOAL_CALORIE_DELTA = {
   MAINTAIN: 0,
   GAIN_MUSCLE: 300,
 }
+
+// Geschmacks-/Ernährungs-Vorlieben für die KI-Gerichtegenerierung.
+// Jede Frage hat "Egal" als Standard, damit man nicht alles durchklicken muss.
+export const DISH_PREFERENCES = [
+  { key: 'cuisine', label: 'Küchenstil', options: ['Egal', 'Asiatisch', 'Mediterran', 'Deutsch / Hausmannskost', 'Mexikanisch', 'Indisch'] },
+  { key: 'diet', label: 'Ernährungsform', options: ['Egal', 'Vegetarisch', 'Vegan', 'Alles (Fleisch & Fisch)', 'Low-Carb', 'High-Protein'] },
+  { key: 'meat', label: 'Fleisch', options: ['Egal', 'Gerne viel', 'Eher wenig', 'Kein Fleisch'] },
+  { key: 'fish', label: 'Fisch', options: ['Egal', 'Gerne', 'Kein Fisch'] },
+  { key: 'vegetables', label: 'Gemüse', options: ['Egal', 'Gerne viel', 'Eher wenig'] },
+  { key: 'fruit', label: 'Obst', options: ['Egal', 'Gerne viel', 'Eher wenig'] },
+]
