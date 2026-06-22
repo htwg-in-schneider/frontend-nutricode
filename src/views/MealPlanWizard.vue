@@ -3,6 +3,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
@@ -22,6 +23,7 @@ import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
 const route = useRoute()
 const router = useRouter()
 const { apiFetch } = useApi()
+const { notify } = useDialog()
 
 const STEPS = [
   { nr: 1, title: 'Ziel & Rahmen' },
@@ -282,9 +284,11 @@ function buildPreferences() {
   return list
 }
 
-// Schritt 4: Gerichte komplett von der KI generieren lassen (anhand Tage,
-// Zielkalorien und Vorlieben) und in den Plan einsetzen. Lädt danach die neuen
-// Gerichte für die Dropdowns nach. Gibt true bei Erfolg zurück.
+// Schritt 4: Gerichte erzeugen. Bevorzugt per KI (ai-fill) anhand Tage,
+// Zielkalorien und Vorlieben. Ist die KI nicht verfügbar (kein API-Key, Rate-
+// Limit, Ausfall), wird automatisch auf den KI-freien Heuristik-Vorschlag
+// (autofill aus den eigenen Gerichten) zurückgegriffen – so lässt sich der
+// Vorgang auch ohne KI vollständig abschließen. Gibt true bei Erfolg zurück.
 async function aiGenerate() {
   error.value = null
   saving.value = true
@@ -294,15 +298,35 @@ async function aiGenerate() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ preferences: buildPreferences() }),
     })
-    if (!res.ok) throw new Error(await readApiError(res, 'KI-Gerichte konnten nicht erzeugt werden.'))
-    await loadDishes()
-    syncFromPlan(await res.json())
-    return true
+    if (res.ok) {
+      await loadDishes()
+      syncFromPlan(await res.json())
+      return true
+    }
+    // KI fehlgeschlagen -> KI-freien Fallback versuchen
+    return await fillFromOwnDishes(await readApiError(res, 'KI-Gerichte konnten nicht erzeugt werden.'))
   } catch (e) {
-    error.value = e.message
-    return false
+    // Netzwerk-/sonstiger Fehler bei der KI -> ebenfalls Fallback versuchen
+    return await fillFromOwnDishes(e.message)
   } finally {
     saving.value = false
+  }
+}
+
+// KI-freier Fallback: füllt den Plan serverseitig aus den eigenen Gerichten des
+// Nutzers (passend zum Kalorienziel). Bei Erfolg true + Hinweis-Toast; schlägt
+// auch das fehl, wird der ursprüngliche KI-Fehler angezeigt.
+async function fillFromOwnDishes(aiErrorMessage) {
+  try {
+    const res = await apiFetch(`/api/mealplan/${plan.value.id}/autofill`, { method: 'POST' })
+    if (!res.ok) throw new Error(await readApiError(res, 'Automatischer Vorschlag fehlgeschlagen.'))
+    await loadDishes()
+    syncFromPlan(await res.json())
+    notify('KI nicht verfügbar – Gerichte aus deinem Bestand vorgeschlagen. Du kannst sie frei anpassen.', 'info')
+    return true
+  } catch (e) {
+    error.value = aiErrorMessage
+    return false
   }
 }
 
