@@ -6,13 +6,13 @@ import { useApi } from '../composables/useApi.js'
 import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
-import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
+import { SEX_OPTIONS, ACTIVITY_LEVELS, DISH_PREFERENCES } from '../constants/nutrition.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
 
 /**
  * Ernährungsplan-Wizard = der komplexe, mehrstufige Vorgang.
  *
- * Vier Eingabemasken (Schritte). Nach JEDEM Schritt wird der Stand serverseitig
+ * Fünf Eingabemasken (Schritte). Nach JEDEM Schritt wird der Stand serverseitig
  * gespeichert (Entwurf), sodass Daten über mehrere Seiten hinweg erhalten bleiben
  * und der Vorgang später fortgesetzt werden kann. Beim Öffnen mit :id springt der
  * Wizard automatisch an die Stelle, an der der Nutzer zuletzt war (currentStep).
@@ -25,8 +25,9 @@ const { apiFetch } = useApi()
 const STEPS = [
   { nr: 1, title: 'Ziel & Rahmen' },
   { nr: 2, title: 'Bedarf' },
-  { nr: 3, title: 'Gerichte' },
-  { nr: 4, title: 'Überprüfen' },
+  { nr: 3, title: 'Vorlieben' },
+  { nr: 4, title: 'Gerichte' },
+  { nr: 5, title: 'Überprüfen' },
 ]
 
 const plan = ref(null)            // serverseitiger Plan (sobald angelegt)
@@ -57,8 +58,14 @@ watch(recommendedCalories, (val) => {
 // Auswahl Schritt 3: Map "tag-slot" -> dishId
 const selections = reactive({})
 
-// Eigene Gerichte des Nutzers (für die Dropdowns in Schritt 3)
+// Eigene Gerichte des Nutzers (für die Dropdowns in Schritt 4)
 const dishes = ref([])
+
+// Schritt 3: Vorlieben für die KI-Generierung (Standard "Egal" je Frage)
+const prefs = reactive({})
+DISH_PREFERENCES.forEach((p) => { prefs[p.key] = 'Egal' })
+const exclude = ref('')
+const notes = ref('')
 
 const isCompleted = computed(() => plan.value?.status === 'COMPLETED')
 const dayList = computed(() => Array.from({ length: form.days }, (_, i) => i))
@@ -161,8 +168,9 @@ onMounted(async () => {
       if (!res.ok) throw new Error('Plan konnte nicht geladen werden.')
       const p = await res.json()
       syncFromPlan(p)
-      // An die zuletzt erreichte Stelle springen (abgeschlossen -> Zusammenfassung)
-      step.value = p.status === 'COMPLETED' ? 4 : Math.min((p.currentStep || 1) + 1, 4)
+      // An die zuletzt erreichte Stelle springen (abgeschlossen -> Zusammenfassung).
+      // Frontend-Schritt = currentStep + 1 (Vorlieben sind ein reiner Frontend-Schritt).
+      step.value = p.status === 'COMPLETED' ? 5 : Math.min((p.currentStep || 1) + 1, 5)
     } catch (e) {
       error.value = e.message
     }
@@ -247,9 +255,9 @@ async function saveStep3() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(buildEntries()),
     })
-    if (!res.ok) throw new Error(await readApiError(res, 'Schritt 3 konnte nicht gespeichert werden.'))
+    if (!res.ok) throw new Error(await readApiError(res, 'Gerichte konnten nicht gespeichert werden.'))
     syncFromPlan(await res.json())
-    step.value = 4
+    step.value = 5
   } catch (e) {
     error.value = e.message
   } finally {
@@ -257,18 +265,44 @@ async function saveStep3() {
   }
 }
 
-async function autofill() {
+// Vorlieben in das Backend-Format bringen ("Egal"/leere weglassen)
+function buildPreferences() {
+  const list = []
+  for (const p of DISH_PREFERENCES) {
+    if (prefs[p.key] && prefs[p.key] !== 'Egal') list.push({ label: p.label, value: prefs[p.key] })
+  }
+  if (exclude.value.trim()) list.push({ label: 'Ausschließen (Abneigungen/Allergien)', value: exclude.value.trim() })
+  if (notes.value.trim()) list.push({ label: 'Sonstige Wünsche', value: notes.value.trim() })
+  return list
+}
+
+// Schritt 4: Gerichte komplett von der KI generieren lassen (anhand Tage,
+// Zielkalorien und Vorlieben) und in den Plan einsetzen. Lädt danach die neuen
+// Gerichte für die Dropdowns nach. Gibt true bei Erfolg zurück.
+async function aiGenerate() {
   error.value = null
   saving.value = true
   try {
-    const res = await apiFetch(`/api/mealplan/${plan.value.id}/autofill`, { method: 'POST' })
-    if (!res.ok) throw new Error(await readApiError(res, 'Vorschlag konnte nicht erzeugt werden.'))
+    const res = await apiFetch(`/api/mealplan/${plan.value.id}/ai-fill`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ preferences: buildPreferences() }),
+    })
+    if (!res.ok) throw new Error(await readApiError(res, 'KI-Gerichte konnten nicht erzeugt werden.'))
+    await loadDishes()
     syncFromPlan(await res.json())
+    return true
   } catch (e) {
     error.value = e.message
+    return false
   } finally {
     saving.value = false
   }
+}
+
+// Von den Vorlieben (Schritt 3) weiter zu den KI-Gerichten (Schritt 4)
+async function goToGerichte() {
+  if (await aiGenerate()) step.value = 4
 }
 
 async function complete() {
@@ -412,19 +446,54 @@ function goTo(nr) {
         </div>
       </form>
 
-      <!-- ===== Schritt 3: Gerichte auswählen ===== -->
-      <div v-else-if="step === 3" class="wizard-form">
+      <!-- ===== Schritt 3: Vorlieben (für die KI-Generierung) ===== -->
+      <form v-else-if="step === 3" class="wizard-form" @submit.prevent="goToGerichte">
+        <p class="wizard-hint">
+          Sag uns deine Vorlieben – die KI erstellt daraus im nächsten Schritt passende
+          Gerichte. Lass „Egal“ stehen, was dir nicht wichtig ist (mindestens eine Frage reicht).
+        </p>
+
+        <div class="pref-grid">
+          <label v-for="p in DISH_PREFERENCES" :key="p.key">
+            {{ p.label }}
+            <select v-model="prefs[p.key]">
+              <option v-for="opt in p.options" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Ausschließen (Abneigungen / Allergien)
+          <input v-model="exclude" type="text" placeholder="z. B. keine Erdbeeren, keine Nüsse" />
+        </label>
+        <label>
+          Sonstige Wünsche (optional)
+          <input v-model="notes" type="text" placeholder="z. B. schnelle Rezepte, viel Eiweiß" />
+        </label>
+
+        <p v-if="error" class="wizard-msg err">{{ error }}</p>
+
+        <div class="wizard-actions">
+          <Button type="button" variant="outline" :onClick="() => (step = 2)">Zurück</Button>
+          <Button type="submit" variant="accent">
+            {{ saving ? 'Generiere … (bis zu 30 Sek.)' : '✨ Gerichte generieren →' }}
+          </Button>
+        </div>
+      </form>
+
+      <!-- ===== Schritt 4: Gerichte (von der KI erstellt, frei anpassbar) ===== -->
+      <div v-else-if="step === 4" class="wizard-form">
         <div class="step3-head">
           <p class="wizard-hint">
-            Wähle für jeden Tag deine Mahlzeiten. Ziel: {{ form.targetCalories }} kcal/Tag.
+            Von der KI erstellt – du kannst jedes Gericht frei ändern. Ziel: {{ form.targetCalories }} kcal/Tag.
           </p>
-          <Button type="button" variant="outline" :onClick="autofill">
-            {{ saving ? 'Erzeuge …' : '✨ Vorschlag generieren' }}
+          <Button type="button" variant="outline" :onClick="aiGenerate">
+            {{ saving ? 'Generiere …' : '🔄 Neu generieren' }}
           </Button>
         </div>
 
         <p v-if="dishes.length === 0" class="wizard-msg err">
-          Du hast noch keine Gerichte. Lege zuerst unter „Gerichte“ welche an.
+          Es wurden noch keine Gerichte erzeugt – versuche „Neu generieren“ (die KI ist evtl. kurz ausgelastet).
         </p>
 
         <div class="plan-grid-wrap">
@@ -459,15 +528,15 @@ function goTo(nr) {
         </div>
 
         <div class="wizard-actions">
-          <Button type="button" variant="outline" :onClick="() => (step = 2)">Zurück</Button>
+          <Button type="button" variant="outline" :onClick="() => (step = 3)">Zurück</Button>
           <Button type="button" variant="accent" :onClick="saveStep3">
             {{ saving ? 'Speichert …' : 'Weiter' }}
           </Button>
         </div>
       </div>
 
-      <!-- ===== Schritt 4: Überprüfen & Abschließen ===== -->
-      <div v-else-if="step === 4" class="wizard-form">
+      <!-- ===== Schritt 5: Überprüfen & Abschließen ===== -->
+      <div v-else-if="step === 5" class="wizard-form">
         <div v-if="isCompleted" class="completed-banner">✓ Dieser Plan ist abgeschlossen.</div>
 
         <h2 class="summary-title">{{ plan?.name }}</h2>
@@ -491,7 +560,7 @@ function goTo(nr) {
         </div>
 
         <div class="wizard-actions">
-          <Button v-if="!isCompleted" type="button" variant="outline" :onClick="() => (step = 3)">Zurück</Button>
+          <Button v-if="!isCompleted" type="button" variant="outline" :onClick="() => (step = 4)">Zurück</Button>
           <Button v-if="!isCompleted" type="button" variant="accent" :onClick="complete">
             {{ saving ? 'Schließt ab …' : 'Plan abschließen' }}
           </Button>
@@ -602,6 +671,13 @@ function goTo(nr) {
 .wizard-hint {
   color: #666;
   font-size: 0.9rem;
+}
+
+/* Schritt 3: Vorlieben-Raster */
+.pref-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
 /* Schritt 2: Mifflin-Rechner */

@@ -11,7 +11,6 @@ import Profile from '../views/Profile.vue'
 import Admin from '../views/Admin.vue'
 import MealPlanList from '../views/MealPlanList.vue'
 import MealPlanWizard from '../views/MealPlanWizard.vue'
-import AiDishGenerator from '../views/AiDishGenerator.vue'
 import AdminMealPlans from '../views/AdminMealPlans.vue'
 import AdminMealPlanDetail from '../views/AdminMealPlanDetail.vue'
 import AdminUsers from '../views/AdminUsers.vue'
@@ -31,8 +30,6 @@ const router = createRouter({
     { path: '/ernaehrungsplan', name: 'mealplans', component: MealPlanList, beforeEnter: authGuard },
     { path: '/ernaehrungsplan/neu', name: 'mealplan-new', component: MealPlanWizard, beforeEnter: authGuard },
     { path: '/ernaehrungsplan/:id', name: 'mealplan-edit', component: MealPlanWizard, beforeEnter: authGuard },
-    // KI-Gerichtegenerator (Gemini)
-    { path: '/ki-gerichte', name: 'ai-dishes', component: AiDishGenerator, beforeEnter: authGuard },
     { path: '/admin', name: 'admin', component: Admin, beforeEnter: adminGuard },
     // Stammdatenverwaltung (Admin-Bereich)
     { path: '/admin/gerichte', name: 'admin-dishes', component: AdminDishes, beforeEnter: adminGuard },

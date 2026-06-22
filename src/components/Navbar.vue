@@ -39,7 +39,6 @@ function doLogout() {
         <!-- Eingeloggt: Ernährungsplan, Profil (+ ggf. Admin) und Abmelden -->
         <template v-if="isAuthenticated">
           <li><router-link to="/ernaehrungsplan">Ernährungsplan</router-link></li>
-          <li><router-link to="/ki-gerichte">KI-Gerichte</router-link></li>
           <li><router-link to="/profil">Profil</router-link></li>
           <li v-if="isAdmin"><router-link to="/admin">Admin-Bereich</router-link></li>
           <li v-if="isAdmin" class="navbar-badge">Admin</li>
