@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { GOAL_LABELS, PLAN_STATUS_LABELS } from '../config.js'
 
 /**
@@ -12,6 +13,7 @@ import { GOAL_LABELS, PLAN_STATUS_LABELS } from '../config.js'
 
 const router = useRouter()
 const { apiFetch } = useApi()
+const { confirm } = useDialog()
 
 const plans = ref([])
 const loading = ref(true)
@@ -38,7 +40,10 @@ function open(plan) {
 }
 
 async function remove(plan) {
-  if (!confirm(`Plan „${plan.name}“ wirklich löschen?`)) return
+  const ok = await confirm(`Plan „${plan.name}“ wirklich löschen?`, {
+    title: 'Plan löschen', confirmText: 'Löschen', danger: true,
+  })
+  if (!ok) return
   try {
     const res = await apiFetch(`/api/mealplan/${plan.id}`, { method: 'DELETE' })
     if (!res.ok && res.status !== 204) throw new Error('Löschen fehlgeschlagen.')

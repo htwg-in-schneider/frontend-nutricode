@@ -6,6 +6,7 @@ import { useApi } from '../composables/useApi.js'
 import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
+import { clampNumber } from '../utils/clamp.js'
 import { SEX_OPTIONS, ACTIVITY_LEVELS, DISH_PREFERENCES } from '../constants/nutrition.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
 
@@ -41,6 +42,11 @@ const form = reactive({
   name: '', goal: 'LOSE_WEIGHT', days: 3, targetCalories: 2000,
   sex: 'MALE', age: null, heightCm: null, weightKg: null, activityLevel: 'MODERATE',
 })
+
+// Eingaben beim Verlassen des Feldes auf plausible Werte begrenzen.
+function clampField(key, min, max, integer = true) {
+  form[key] = clampNumber(form[key], min, max, { integer })
+}
 
 // true, sobald die Zielkalorien manuell/aus dem Plan gesetzt sind -> dann nicht
 // mehr automatisch mit dem berechneten Vorschlag überschreiben.
@@ -353,7 +359,7 @@ function goTo(nr) {
       <form v-if="step === 1" class="wizard-form" @submit.prevent="saveStep1">
         <label>
           Name des Plans
-          <input v-model="form.name" type="text" required placeholder="z. B. Mein Wochenplan" />
+          <input v-model="form.name" type="text" required :maxlength="LIMITS.NAME_MAX" placeholder="z. B. Mein Wochenplan" />
         </label>
         <label>
           Ziel
@@ -363,7 +369,11 @@ function goTo(nr) {
         </label>
         <label>
           Anzahl Tage (1–7)
-          <input v-model.number="form.days" type="number" :min="LIMITS.DAYS_MIN" :max="LIMITS.DAYS_MAX" required />
+          <input
+            v-model.number="form.days" type="number"
+            :min="LIMITS.DAYS_MIN" :max="LIMITS.DAYS_MAX" required
+            @change="clampField('days', LIMITS.DAYS_MIN, LIMITS.DAYS_MAX)"
+          />
         </label>
         <div class="wizard-actions">
           <Button type="submit" variant="accent">{{ saving ? 'Speichert …' : 'Weiter' }}</Button>
@@ -388,15 +398,27 @@ function goTo(nr) {
         <div class="metric-row">
           <label>
             Alter (Jahre)
-            <input v-model.number="form.age" type="number" min="1" max="120" placeholder="z. B. 25" />
+            <input
+              v-model.number="form.age" type="number"
+              :min="LIMITS.AGE_MIN" :max="LIMITS.AGE_MAX" placeholder="z. B. 25"
+              @change="clampField('age', LIMITS.AGE_MIN, LIMITS.AGE_MAX)"
+            />
           </label>
           <label>
             Größe (cm)
-            <input v-model.number="form.heightCm" type="number" min="50" max="250" placeholder="z. B. 178" />
+            <input
+              v-model.number="form.heightCm" type="number"
+              :min="LIMITS.HEIGHT_MIN" :max="LIMITS.HEIGHT_MAX" placeholder="z. B. 178"
+              @change="clampField('heightCm', LIMITS.HEIGHT_MIN, LIMITS.HEIGHT_MAX)"
+            />
           </label>
           <label>
             Gewicht (kg)
-            <input v-model.number="form.weightKg" type="number" min="20" max="400" step="0.1" placeholder="z. B. 72" />
+            <input
+              v-model.number="form.weightKg" type="number"
+              :min="LIMITS.WEIGHT_MIN" :max="LIMITS.WEIGHT_MAX" step="0.1" placeholder="z. B. 72"
+              @change="clampField('weightKg', LIMITS.WEIGHT_MIN, LIMITS.WEIGHT_MAX, false)"
+            />
           </label>
         </div>
 
@@ -425,9 +447,10 @@ function goTo(nr) {
             type="number"
             :min="LIMITS.CALORIES_MIN"
             :max="LIMITS.CALORIES_MAX"
-            step="50"
+            step="1"
             required
             @input="targetTouched = true"
+            @change="clampField('targetCalories', LIMITS.CALORIES_MIN, LIMITS.CALORIES_MAX)"
           />
         </label>
         <p class="wizard-hint hint-row">
@@ -464,11 +487,11 @@ function goTo(nr) {
 
         <label>
           Ausschließen (Abneigungen / Allergien)
-          <input v-model="exclude" type="text" placeholder="z. B. keine Erdbeeren, keine Nüsse" />
+          <input v-model="exclude" type="text" :maxlength="LIMITS.PREF_TEXT_MAX" placeholder="z. B. keine Erdbeeren, keine Nüsse" />
         </label>
         <label>
           Sonstige Wünsche (optional)
-          <input v-model="notes" type="text" placeholder="z. B. schnelle Rezepte, viel Eiweiß" />
+          <input v-model="notes" type="text" :maxlength="LIMITS.PREF_TEXT_MAX" placeholder="z. B. schnelle Rezepte, viel Eiweiß" />
         </label>
 
         <p v-if="error" class="wizard-msg err">{{ error }}</p>

@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { LIMITS } from '../constants/validation.js'
 
 // Empfaenger-Adresse, an die die Kontaktanfrage geschickt wird
 // (Platzhalter – vor Veroeffentlichung durch echte Adresse ersetzen)
@@ -226,16 +227,16 @@ function sendMail() {
           <div class="contact-row">
             <label>
               Name
-              <input v-model="name" type="text" placeholder="Dein Name" required>
+              <input v-model="name" type="text" :maxlength="LIMITS.NAME_MAX" placeholder="Dein Name" required>
             </label>
             <label>
               E-Mail
-              <input v-model="email" type="email" placeholder="dein@email.de" required>
+              <input v-model="email" type="email" :maxlength="LIMITS.EMAIL_MAX" placeholder="dein@email.de" required>
             </label>
           </div>
           <label>
             Nachricht
-            <textarea v-model="message" rows="5" placeholder="Deine Nachricht an uns ..." required></textarea>
+            <textarea v-model="message" rows="5" :maxlength="LIMITS.MESSAGE_MAX" placeholder="Deine Nachricht an uns ..." required></textarea>
           </label>
           <button type="submit" class="btn btn-accent">Nachricht senden →</button>
         </form>

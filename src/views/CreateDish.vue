@@ -4,10 +4,14 @@ import { useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { readApiError } from '../utils/apiError.js'
+import { LIMITS } from '../constants/validation.js'
+import { clampNumber } from '../utils/clamp.js'
 
 const router = useRouter()
 const { apiFetch } = useApi()
+const { notify } = useDialog()
 
 const dish = ref({
   title: '',
@@ -17,6 +21,11 @@ const dish = ref({
   category: 'BREAKFAST'
 })
 
+// Kalorien beim Verlassen des Feldes auf den gültigen Bereich begrenzen.
+function clampCalories() {
+  dish.value.calories = clampNumber(dish.value.calories, LIMITS.DISH_CALORIES_MIN, LIMITS.CALORIES_MAX)
+}
+
 const categories = ref([])
 const ingredients = ref([])   // lokale Liste: [{ name, amount }]
 
@@ -25,7 +34,7 @@ onMounted(async () => {
     const response = await fetch(`${API_BASE}/api/category`)
     categories.value = await response.json()
   } catch (err) {
-    alert('Kategorien konnten nicht geladen werden')
+    notify('Kategorien konnten nicht geladen werden', 'error')
   }
 })
 
@@ -63,10 +72,10 @@ async function createDish() {
       if (!ingRes.ok) throw new Error(await readApiError(ingRes, 'Zutat konnte nicht gespeichert werden'))
     }
 
-    alert('Gericht erfolgreich angelegt!')
+    notify('Gericht erfolgreich angelegt ✓', 'success')
     router.push('/gerichte')
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
   }
 }
 </script>
@@ -77,19 +86,23 @@ async function createDish() {
     <form @submit.prevent="createDish">
       <label>
         Titel
-        <input v-model="dish.title" type="text" required>
+        <input v-model="dish.title" type="text" required :maxlength="LIMITS.DISH_TITLE_MAX">
       </label>
       <label>
         Beschreibung
-        <textarea v-model="dish.description" rows="3"></textarea>
+        <textarea v-model="dish.description" rows="3" :maxlength="LIMITS.DISH_DESC_MAX"></textarea>
       </label>
       <label>
         Kalorien
-        <input v-model.number="dish.calories" type="number" min="0" max="10000" required>
+        <input
+          v-model.number="dish.calories" type="number" required
+          :min="LIMITS.DISH_CALORIES_MIN" :max="LIMITS.CALORIES_MAX"
+          @change="clampCalories"
+        >
       </label>
       <label>
         Bild-URL
-        <input v-model="dish.imageUrl" type="text" placeholder="https://...">
+        <input v-model="dish.imageUrl" type="url" :maxlength="LIMITS.IMAGE_URL_MAX" placeholder="https://...">
       </label>
       <label>
         Kategorie
@@ -103,8 +116,8 @@ async function createDish() {
       <fieldset class="ingredients-fieldset">
         <legend>Zutaten</legend>
         <div v-for="(ing, index) in ingredients" :key="index" class="ingredient-row">
-          <input v-model="ing.name" type="text" placeholder="Zutat (z. B. Haferflocken)">
-          <input v-model="ing.amount" type="text" placeholder="Menge (z. B. 50 g)">
+          <input v-model="ing.name" type="text" :maxlength="LIMITS.INGREDIENT_NAME_MAX" placeholder="Zutat (z. B. Haferflocken)">
+          <input v-model="ing.amount" type="text" :maxlength="LIMITS.INGREDIENT_AMOUNT_MAX" placeholder="Menge (z. B. 50 g)">
           <button type="button" class="btn btn-danger" @click="removeIngredientRow(index)">✕</button>
         </div>
         <button type="button" class="btn btn-outline" @click="addIngredientRow">+ Zutat hinzufügen</button>

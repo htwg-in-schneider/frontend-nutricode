@@ -4,10 +4,17 @@ import { useApi } from '../composables/useApi.js'
 import { useRoles } from '../composables/useRoles.js'
 import { readApiError } from '../utils/apiError.js'
 import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
+import { LIMITS } from '../constants/validation.js'
+import { clampNumber } from '../utils/clamp.js'
 import Button from '../components/Button.vue'
 
 const { apiFetch } = useApi()
 const { isAdmin } = useRoles()
+
+// Körperdaten beim Verlassen des Feldes auf plausible Werte begrenzen.
+function clampField(key, min, max, integer = true) {
+  profile.value[key] = clampNumber(profile.value[key], min, max, { integer })
+}
 
 const profile = ref({
   name: '', email: '', address: '', role: '',
@@ -69,7 +76,7 @@ async function saveProfile() {
       <form class="profile-form" @submit.prevent="saveProfile">
         <label>
           Name
-          <input v-model="profile.name" type="text" required>
+          <input v-model="profile.name" type="text" required :maxlength="LIMITS.NAME_MAX">
         </label>
         <label>
           E-Mail <span class="hint">(aus Auth0, nicht änderbar)</span>
@@ -77,7 +84,7 @@ async function saveProfile() {
         </label>
         <label>
           Adresse
-          <textarea v-model="profile.address" rows="3" placeholder="Straße, PLZ, Ort"></textarea>
+          <textarea v-model="profile.address" rows="3" :maxlength="LIMITS.ADDRESS_MAX" placeholder="Straße, PLZ, Ort"></textarea>
         </label>
 
         <fieldset class="metrics-fieldset">
@@ -92,15 +99,27 @@ async function saveProfile() {
           <div class="metrics-row">
             <label>
               Alter (Jahre)
-              <input v-model.number="profile.age" type="number" min="1" max="120" />
+              <input
+                v-model.number="profile.age" type="number"
+                :min="LIMITS.AGE_MIN" :max="LIMITS.AGE_MAX"
+                @change="clampField('age', LIMITS.AGE_MIN, LIMITS.AGE_MAX)"
+              />
             </label>
             <label>
               Größe (cm)
-              <input v-model.number="profile.heightCm" type="number" min="50" max="250" />
+              <input
+                v-model.number="profile.heightCm" type="number"
+                :min="LIMITS.HEIGHT_MIN" :max="LIMITS.HEIGHT_MAX"
+                @change="clampField('heightCm', LIMITS.HEIGHT_MIN, LIMITS.HEIGHT_MAX)"
+              />
             </label>
             <label>
               Gewicht (kg)
-              <input v-model.number="profile.weightKg" type="number" min="20" max="400" step="0.1" />
+              <input
+                v-model.number="profile.weightKg" type="number"
+                :min="LIMITS.WEIGHT_MIN" :max="LIMITS.WEIGHT_MAX" step="0.1"
+                @change="clampField('weightKg', LIMITS.WEIGHT_MIN, LIMITS.WEIGHT_MAX, false)"
+              />
             </label>
           </div>
           <label>

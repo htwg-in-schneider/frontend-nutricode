@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '../composables/useApi.js'
 import { readApiError } from '../utils/apiError.js'
+import { LIMITS } from '../constants/validation.js'
 
 /**
  * Stammdaten: Benutzerverwaltung (nur ADMIN). Anzeigen, Durchsuchen und
@@ -122,9 +123,9 @@ async function saveEdit(u) {
           <tr v-for="u in filteredUsers" :key="u.oauthId">
             <!-- Bearbeiten-Modus -->
             <template v-if="editId === u.oauthId">
-              <td data-label="Name"><input v-model="draft.name" type="text" class="au-input" /></td>
+              <td data-label="Name"><input v-model="draft.name" type="text" :maxlength="LIMITS.NAME_MAX" class="au-input" /></td>
               <td data-label="E-Mail" class="au-muted">{{ u.email || '—' }}</td>
-              <td data-label="Adresse"><input v-model="draft.address" type="text" class="au-input" /></td>
+              <td data-label="Adresse"><input v-model="draft.address" type="text" :maxlength="LIMITS.ADDRESS_MAX" class="au-input" /></td>
               <td data-label="Rolle">
                 <select v-model="draft.role" class="au-input">
                   <option v-for="r in ROLES" :key="r" :value="r">{{ ROLE_LABELS[r] }}</option>

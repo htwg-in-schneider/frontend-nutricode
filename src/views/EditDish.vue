@@ -4,11 +4,15 @@ import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { API_BASE } from '../config.js'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { readApiError } from '../utils/apiError.js'
+import { LIMITS } from '../constants/validation.js'
+import { clampNumber } from '../utils/clamp.js'
 
 const route = useRoute()
 const router = useRouter()
 const { apiFetch } = useApi()
+const { confirm, notify } = useDialog()
 
 const dish = ref({
   title: '',
@@ -17,6 +21,11 @@ const dish = ref({
   imageUrl: '',
   category: 'BREAKFAST'
 })
+
+// Kalorien beim Verlassen des Feldes auf den gültigen Bereich begrenzen.
+function clampCalories() {
+  dish.value.calories = clampNumber(dish.value.calories, LIMITS.DISH_CALORIES_MIN, LIMITS.CALORIES_MAX)
+}
 const categories = ref([])
 const ingredients = ref([])                 // bestehende Zutaten (mit id)
 const newIngredient = ref({ name: '', amount: '' })
@@ -39,7 +48,7 @@ onMounted(async () => {
     categories.value = await catRes.json()
     await loadIngredients()
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
     router.push('/gerichte')
   }
 })
@@ -52,10 +61,10 @@ async function updateDish() {
       body: JSON.stringify(dish.value)
     })
     if (!response.ok) throw new Error(await readApiError(response, 'Fehler beim Speichern'))
-    alert('Gericht gespeichert!')
+    notify('Gericht gespeichert ✓', 'success')
     router.push(`/dish/${route.params.id}`)
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
   }
 }
 
@@ -75,7 +84,7 @@ async function addIngredient() {
     newIngredient.value = { name: '', amount: '' }
     await loadIngredients()
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
   }
 }
 
@@ -85,21 +94,24 @@ async function removeIngredient(id) {
     if (!res.ok) throw new Error(await readApiError(res, 'Zutat konnte nicht gelöscht werden'))
     await loadIngredients()
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
   }
 }
 
 async function deleteDish() {
-  if (!confirm('Dieses Gericht wirklich löschen?')) return
+  const ok = await confirm('Dieses Gericht wirklich löschen?', {
+    title: 'Gericht löschen', confirmText: 'Löschen', danger: true,
+  })
+  if (!ok) return
   try {
     const response = await apiFetch(`/api/dish/${route.params.id}`, {
       method: 'DELETE'
     })
     if (!response.ok) throw new Error(await readApiError(response, 'Fehler beim Löschen'))
-    alert('Gericht gelöscht!')
+    notify('Gericht gelöscht ✓', 'success')
     router.push('/gerichte')
   } catch (err) {
-    alert(err.message)
+    notify(err.message, 'error')
   }
 }
 </script>
@@ -110,19 +122,23 @@ async function deleteDish() {
     <form @submit.prevent="updateDish">
       <label>
         Titel
-        <input v-model="dish.title" type="text" required>
+        <input v-model="dish.title" type="text" required :maxlength="LIMITS.DISH_TITLE_MAX">
       </label>
       <label>
         Beschreibung
-        <textarea v-model="dish.description" rows="3"></textarea>
+        <textarea v-model="dish.description" rows="3" :maxlength="LIMITS.DISH_DESC_MAX"></textarea>
       </label>
       <label>
         Kalorien
-        <input v-model.number="dish.calories" type="number" min="0" max="10000" required>
+        <input
+          v-model.number="dish.calories" type="number" required
+          :min="LIMITS.DISH_CALORIES_MIN" :max="LIMITS.CALORIES_MAX"
+          @change="clampCalories"
+        >
       </label>
       <label>
         Bild-URL
-        <input v-model="dish.imageUrl" type="text" placeholder="https://...">
+        <input v-model="dish.imageUrl" type="url" :maxlength="LIMITS.IMAGE_URL_MAX" placeholder="https://...">
       </label>
       <label>
         Kategorie
@@ -143,8 +159,8 @@ async function deleteDish() {
           <li v-if="ingredients.length === 0" class="ingredient-empty">Noch keine Zutaten.</li>
         </ul>
         <div class="ingredient-row">
-          <input v-model="newIngredient.name" type="text" placeholder="Zutat">
-          <input v-model="newIngredient.amount" type="text" placeholder="Menge">
+          <input v-model="newIngredient.name" type="text" :maxlength="LIMITS.INGREDIENT_NAME_MAX" placeholder="Zutat">
+          <input v-model="newIngredient.amount" type="text" :maxlength="LIMITS.INGREDIENT_AMOUNT_MAX" placeholder="Menge">
           <button type="button" class="btn btn-outline" @click="addIngredient">+ Hinzufügen</button>
         </div>
       </fieldset>

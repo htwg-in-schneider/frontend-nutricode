@@ -2,6 +2,8 @@
 import { reactive, computed } from 'vue'
 import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
 import { GOAL_LABELS } from '../config.js'
+import { LIMITS } from '../constants/validation.js'
+import { clampNumber } from '../utils/clamp.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
 
 /**
@@ -13,6 +15,11 @@ const form = reactive({
   sex: 'MALE', age: null, heightCm: null, weightKg: null,
   activityLevel: 'MODERATE', goal: 'MAINTAIN',
 })
+
+// Eingaben beim Verlassen des Feldes auf plausible Werte begrenzen.
+function clampField(key, min, max, integer = true) {
+  form[key] = clampNumber(form[key], min, max, { integer })
+}
 
 const bmr = computed(() => calcBmr(form))
 const tdee = computed(() => calcTdee(form))
@@ -41,15 +48,27 @@ const target = computed(() => calcTargetCalories(form, form.goal))
       <div class="calc-row">
         <label>
           Alter (Jahre)
-          <input v-model.number="form.age" type="number" min="1" max="120" placeholder="z. B. 25" />
+          <input
+            v-model.number="form.age" type="number"
+            :min="LIMITS.AGE_MIN" :max="LIMITS.AGE_MAX" placeholder="z. B. 25"
+            @change="clampField('age', LIMITS.AGE_MIN, LIMITS.AGE_MAX)"
+          />
         </label>
         <label>
           Größe (cm)
-          <input v-model.number="form.heightCm" type="number" min="50" max="250" placeholder="z. B. 178" />
+          <input
+            v-model.number="form.heightCm" type="number"
+            :min="LIMITS.HEIGHT_MIN" :max="LIMITS.HEIGHT_MAX" placeholder="z. B. 178"
+            @change="clampField('heightCm', LIMITS.HEIGHT_MIN, LIMITS.HEIGHT_MAX)"
+          />
         </label>
         <label>
           Gewicht (kg)
-          <input v-model.number="form.weightKg" type="number" min="20" max="400" step="0.1" placeholder="z. B. 72" />
+          <input
+            v-model.number="form.weightKg" type="number"
+            :min="LIMITS.WEIGHT_MIN" :max="LIMITS.WEIGHT_MAX" step="0.1" placeholder="z. B. 72"
+            @change="clampField('weightKg', LIMITS.WEIGHT_MIN, LIMITS.WEIGHT_MAX, false)"
+          />
         </label>
       </div>
 

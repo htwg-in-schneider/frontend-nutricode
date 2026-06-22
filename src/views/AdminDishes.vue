@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { CATEGORY_LABELS } from '../config.js'
 
 /**
@@ -13,6 +14,7 @@ import { CATEGORY_LABELS } from '../config.js'
 
 const router = useRouter()
 const { apiFetch } = useApi()
+const { confirm } = useDialog()
 
 const dishes = ref([])
 const loading = ref(true)
@@ -47,7 +49,10 @@ async function load() {
 onMounted(load)
 
 async function remove(dish) {
-  if (!confirm(`Gericht „${dish.title}“ wirklich löschen?`)) return
+  const ok = await confirm(`Gericht „${dish.title}“ wirklich löschen?`, {
+    title: 'Gericht löschen', confirmText: 'Löschen', danger: true,
+  })
+  if (!ok) return
   error.value = null
   try {
     const res = await apiFetch(`/api/dish/${dish.id}`, { method: 'DELETE' })

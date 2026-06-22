@@ -2,6 +2,7 @@
 import SpecialBanner from './components/SpecialBanner.vue'
 import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
+import AppDialogs from './components/AppDialogs.vue'
 </script>
 
 <template>
@@ -10,6 +11,7 @@ import Footer from './components/Footer.vue'
     <Navbar />
     <router-view />
     <Footer />
+    <AppDialogs />
   </div>
 </template>
 
