@@ -34,6 +34,7 @@ function doLogout() {
       <ul class="navbar-links" id="nav-links">
         <li><router-link to="/">Startseite</router-link></li>
         <li><router-link to="/gerichte">Gerichte</router-link></li>
+        <li><router-link to="/kalorienrechner">Kalorienrechner</router-link></li>
         <li><router-link :to="{ path: '/', hash: '#kontakt' }">Kontakt</router-link></li>
 
         <!-- Eingeloggt: Ernährungsplan, Profil (+ ggf. Admin) und Abmelden -->

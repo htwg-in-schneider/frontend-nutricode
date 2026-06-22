@@ -7,6 +7,7 @@ import CreateDish from '../views/CreateDish.vue'
 import EditDish from '../views/EditDish.vue'
 import Datenschutz from '../views/Datenschutz.vue'
 import Impressum from '../views/Impressum.vue'
+import Calculator from '../views/Calculator.vue'
 import Profile from '../views/Profile.vue'
 import Admin from '../views/Admin.vue'
 import MealPlanList from '../views/MealPlanList.vue'
@@ -22,6 +23,8 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: Home },
     { path: '/gerichte', name: 'dish-catalog', component: DishCatalog },
+    // Öffentlicher Kalorienrechner (ohne Anmeldung)
+    { path: '/kalorienrechner', name: 'calculator', component: Calculator },
     { path: '/dish/new', name: 'dish-create', component: CreateDish, beforeEnter: authGuard },
     { path: '/dish/:id', name: 'dish-detail', component: DishDetail },
     { path: '/dish/:id/edit', name: 'dish-edit', component: EditDish, beforeEnter: authGuard },
