@@ -1,13 +1,17 @@
 <script setup>
+import { ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuth0 } from '@auth0/auth0-vue'
 import { useRoles } from '../composables/useRoles.js'
 
 const { loginWithRedirect, logout } = useAuth0()
 const { isAuthenticated, isAdmin, user } = useRoles()
+const route = useRoute()
 
-function toggleMenu() {
-  document.getElementById('nav-links').classList.toggle('navbar-links-open')
-}
+// Mobiles Menü (Hamburger). Reaktiv statt direkter DOM-Manipulation und
+// schließt sich nach jedem Seitenwechsel automatisch wieder.
+const menuOpen = ref(false)
+watch(() => route.fullPath, () => { menuOpen.value = false })
 
 async function login() {
   try {
@@ -27,11 +31,17 @@ function doLogout() {
     <nav class="navbar">
       <router-link to="/" class="navbar-brand">Nutri<span>Code</span></router-link>
 
-      <button class="navbar-toggle" @click="toggleMenu">
+      <button
+        class="navbar-toggle"
+        type="button"
+        :aria-expanded="menuOpen"
+        aria-label="Menü öffnen oder schließen"
+        @click="menuOpen = !menuOpen"
+      >
         <span></span><span></span><span></span>
       </button>
 
-      <ul class="navbar-links" id="nav-links">
+      <ul class="navbar-links" :class="{ 'navbar-links-open': menuOpen }" @click="menuOpen = false">
         <li><router-link to="/">Startseite</router-link></li>
         <li><router-link to="/gerichte">Gerichte</router-link></li>
         <li><router-link to="/kalorienrechner">Kalorienrechner</router-link></li>
