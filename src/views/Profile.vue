@@ -3,12 +3,16 @@ import { ref, onMounted } from 'vue'
 import { useApi } from '../composables/useApi.js'
 import { useRoles } from '../composables/useRoles.js'
 import { readApiError } from '../utils/apiError.js'
+import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
 import Button from '../components/Button.vue'
 
 const { apiFetch } = useApi()
 const { isAdmin } = useRoles()
 
-const profile = ref({ name: '', email: '', address: '', role: '' })
+const profile = ref({
+  name: '', email: '', address: '', role: '',
+  sex: null, age: null, heightCm: null, weightKg: null, activityLevel: null,
+})
 const loading = ref(true)
 const saved = ref(false)
 const error = ref(null)
@@ -32,7 +36,15 @@ async function saveProfile() {
     const res = await apiFetch('/api/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: profile.value.name, address: profile.value.address })
+      body: JSON.stringify({
+        name: profile.value.name,
+        address: profile.value.address,
+        sex: profile.value.sex || null,
+        age: profile.value.age !== null && profile.value.age !== '' ? Number(profile.value.age) : null,
+        heightCm: profile.value.heightCm !== null && profile.value.heightCm !== '' ? Number(profile.value.heightCm) : null,
+        weightKg: profile.value.weightKg !== null && profile.value.weightKg !== '' ? Number(profile.value.weightKg) : null,
+        activityLevel: profile.value.activityLevel || null,
+      })
     })
     if (!res.ok) throw new Error(await readApiError(res, 'Speichern fehlgeschlagen'))
     profile.value = await res.json()
@@ -67,6 +79,38 @@ async function saveProfile() {
           Adresse
           <textarea v-model="profile.address" rows="3" placeholder="Straße, PLZ, Ort"></textarea>
         </label>
+
+        <fieldset class="metrics-fieldset">
+          <legend>Körperdaten <span class="hint">(für die Kalorienberechnung im Ernährungsplan)</span></legend>
+          <label>
+            Geschlecht
+            <select v-model="profile.sex">
+              <option :value="null">— nicht angegeben —</option>
+              <option v-for="s in SEX_OPTIONS" :key="s.key" :value="s.key">{{ s.label }}</option>
+            </select>
+          </label>
+          <div class="metrics-row">
+            <label>
+              Alter (Jahre)
+              <input v-model.number="profile.age" type="number" min="1" max="120" />
+            </label>
+            <label>
+              Größe (cm)
+              <input v-model.number="profile.heightCm" type="number" min="50" max="250" />
+            </label>
+            <label>
+              Gewicht (kg)
+              <input v-model.number="profile.weightKg" type="number" min="20" max="400" step="0.1" />
+            </label>
+          </div>
+          <label>
+            Aktivitätslevel
+            <select v-model="profile.activityLevel">
+              <option :value="null">— nicht angegeben —</option>
+              <option v-for="a in ACTIVITY_LEVELS" :key="a.key" :value="a.key">{{ a.label }}</option>
+            </select>
+          </label>
+        </fieldset>
 
         <div class="form-actions">
           <Button type="submit" variant="accent">Speichern</Button>
@@ -109,7 +153,8 @@ async function saveProfile() {
   font-size: 0.85rem;
 }
 .profile-form input,
-.profile-form textarea {
+.profile-form textarea,
+.profile-form select {
   padding: 0.7rem;
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -117,9 +162,31 @@ async function saveProfile() {
   font-family: inherit;
 }
 .profile-form input:focus,
-.profile-form textarea:focus {
+.profile-form textarea:focus,
+.profile-form select:focus {
   outline: none;
   border-color: var(--color-primary);
+}
+.metrics-fieldset {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem 1.2rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.metrics-fieldset legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+}
+.metrics-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.metrics-row label {
+  flex: 1;
+  min-width: 110px;
 }
 .profile-form input:disabled {
   background: #f3f3f3;

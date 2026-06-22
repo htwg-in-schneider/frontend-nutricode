@@ -1,11 +1,13 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from '../components/Button.vue'
 import { useApi } from '../composables/useApi.js'
 import { readApiError } from '../utils/apiError.js'
 import { GOAL_LABELS, MEAL_SLOTS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
+import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
+import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
 
 /**
  * Ernährungsplan-Wizard = der komplexe, mehrstufige Vorgang.
@@ -22,7 +24,7 @@ const { apiFetch } = useApi()
 
 const STEPS = [
   { nr: 1, title: 'Ziel & Rahmen' },
-  { nr: 2, title: 'Kalorien' },
+  { nr: 2, title: 'Bedarf' },
   { nr: 3, title: 'Gerichte' },
   { nr: 4, title: 'Überprüfen' },
 ]
@@ -33,8 +35,24 @@ const loading = ref(true)
 const saving = ref(false)
 const error = ref(null)
 
-// Eingabefelder Schritt 1 + 2
-const form = reactive({ name: '', goal: 'LOSE_WEIGHT', days: 3, targetCalories: 2000 })
+// Eingabefelder Schritt 1 + 2 (inkl. Körperdaten für die Mifflin-Berechnung)
+const form = reactive({
+  name: '', goal: 'LOSE_WEIGHT', days: 3, targetCalories: 2000,
+  sex: 'MALE', age: null, heightCm: null, weightKg: null, activityLevel: 'MODERATE',
+})
+
+// true, sobald die Zielkalorien manuell/aus dem Plan gesetzt sind -> dann nicht
+// mehr automatisch mit dem berechneten Vorschlag überschreiben.
+const targetTouched = ref(false)
+
+// Mifflin-St-Jeor: Grundumsatz, Tagesbedarf und empfohlene Zielkalorien (live)
+const bmr = computed(() => calcBmr(form))
+const tdee = computed(() => calcTdee(form))
+const recommendedCalories = computed(() => calcTargetCalories(form, form.goal))
+
+watch(recommendedCalories, (val) => {
+  if (val != null && !targetTouched.value) form.targetCalories = val
+})
 
 // Auswahl Schritt 3: Map "tag-slot" -> dishId
 const selections = reactive({})
@@ -72,6 +90,8 @@ function syncFromPlan(p) {
   form.goal = p.goal ?? 'LOSE_WEIGHT'
   form.days = p.days || 1
   form.targetCalories = p.targetCalories || 0
+  // Gespeicherten Wert nicht durch den Vorschlag überschreiben (sonst frei berechnen)
+  targetTouched.value = (p.targetCalories || 0) > 0
   for (const k of Object.keys(selections)) delete selections[k]
   for (const e of p.entries || []) {
     selections[selKey(e.dayIndex, e.slot)] = e.dishId
@@ -87,8 +107,53 @@ async function loadDishes() {
   }
 }
 
+// Körperdaten aus dem Profil vorbefüllen (beim wiederholten Plan muss man so
+// nichts erneut eintippen). Bleibt leer, falls noch nichts hinterlegt ist.
+async function loadProfile() {
+  try {
+    const res = await apiFetch('/api/profile')
+    if (!res.ok) return
+    const p = await res.json()
+    if (p.sex) form.sex = p.sex
+    if (p.age != null) form.age = p.age
+    if (p.heightCm != null) form.heightCm = p.heightCm
+    if (p.weightKg != null) form.weightKg = p.weightKg
+    if (p.activityLevel) form.activityLevel = p.activityLevel
+  } catch (e) {
+    // Profil optional – Felder bleiben leer
+  }
+}
+
+// Empfohlene Kalorien manuell übernehmen (verlinkt das Zielfeld wieder ans Profil)
+function applyRecommended() {
+  if (recommendedCalories.value != null) {
+    form.targetCalories = recommendedCalories.value
+    targetTouched.value = false
+  }
+}
+
+// Körperdaten fürs nächste Mal im Profil speichern (partielles Update; nur Werte)
+async function saveProfileMetrics() {
+  try {
+    await apiFetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sex: form.sex,
+        age: form.age !== null && form.age !== '' ? Number(form.age) : null,
+        heightCm: form.heightCm !== null && form.heightCm !== '' ? Number(form.heightCm) : null,
+        weightKg: form.weightKg !== null && form.weightKg !== '' ? Number(form.weightKg) : null,
+        activityLevel: form.activityLevel,
+      }),
+    })
+  } catch (e) {
+    // Profil-Speichern ist optional und darf den Plan-Fortschritt nicht blockieren
+  }
+}
+
 onMounted(async () => {
   await loadDishes()
+  await loadProfile()
   const id = route.params.id
   if (id) {
     try {
@@ -152,6 +217,8 @@ async function saveStep2() {
     })
     if (!res.ok) throw new Error(await readApiError(res, 'Schritt 2 konnte nicht gespeichert werden.'))
     syncFromPlan(await res.json())
+    // Körperdaten im Profil ablegen, damit sie beim nächsten Plan vorausgefüllt sind
+    await saveProfileMetrics()
     step.value = 3
   } catch (e) {
     error.value = e.message
@@ -269,16 +336,76 @@ function goTo(nr) {
         </div>
       </form>
 
-      <!-- ===== Schritt 2: Zielkalorien ===== -->
+      <!-- ===== Schritt 2: Kalorienbedarf (Mifflin-St-Jeor) ===== -->
       <form v-else-if="step === 2" class="wizard-form" @submit.prevent="saveStep2">
+        <p class="wizard-hint">
+          Aus deinen Körperdaten berechnen wir deinen Tagesbedarf (Mifflin-St-Jeor-Formel).
+          Beim nächsten Plan sind diese Werte automatisch vorausgefüllt – du kannst sie
+          aber jederzeit anpassen.
+        </p>
+
+        <label>
+          Geschlecht
+          <select v-model="form.sex">
+            <option v-for="s in SEX_OPTIONS" :key="s.key" :value="s.key">{{ s.label }}</option>
+          </select>
+        </label>
+
+        <div class="metric-row">
+          <label>
+            Alter (Jahre)
+            <input v-model.number="form.age" type="number" min="1" max="120" placeholder="z. B. 25" />
+          </label>
+          <label>
+            Größe (cm)
+            <input v-model.number="form.heightCm" type="number" min="50" max="250" placeholder="z. B. 178" />
+          </label>
+          <label>
+            Gewicht (kg)
+            <input v-model.number="form.weightKg" type="number" min="20" max="400" step="0.1" placeholder="z. B. 72" />
+          </label>
+        </div>
+
+        <label>
+          Aktivitätslevel
+          <select v-model="form.activityLevel">
+            <option v-for="a in ACTIVITY_LEVELS" :key="a.key" :value="a.key">{{ a.label }}</option>
+          </select>
+        </label>
+
+        <!-- Live-Berechnung -->
+        <div v-if="recommendedCalories != null" class="calc-result">
+          <div class="calc-line"><span>Grundumsatz (BMR)</span><strong>{{ bmr }} kcal</strong></div>
+          <div class="calc-line"><span>Tagesbedarf (TDEE)</span><strong>{{ tdee }} kcal</strong></div>
+          <div class="calc-line highlight">
+            <span>Empfohlen für „{{ GOAL_LABELS[form.goal] }}“</span>
+            <strong>{{ recommendedCalories }} kcal/Tag</strong>
+          </div>
+        </div>
+        <p v-else class="wizard-hint">Fülle Alter, Größe und Gewicht aus, um den Bedarf zu berechnen.</p>
+
         <label>
           Zielkalorien pro Tag (kcal)
-          <input v-model.number="form.targetCalories" type="number" :min="LIMITS.CALORIES_MIN" :max="LIMITS.CALORIES_MAX" step="50" required />
+          <input
+            v-model.number="form.targetCalories"
+            type="number"
+            :min="LIMITS.CALORIES_MIN"
+            :max="LIMITS.CALORIES_MAX"
+            step="50"
+            required
+            @input="targetTouched = true"
+          />
         </label>
-        <p class="wizard-hint">
-          Richtwert je Mahlzeit: ca. {{ Math.round(form.targetCalories / 3) }} kcal
-          (bei drei Mahlzeiten pro Tag).
+        <p class="wizard-hint hint-row">
+          <button
+            v-if="recommendedCalories != null && form.targetCalories !== recommendedCalories"
+            type="button"
+            class="link-btn"
+            @click="applyRecommended"
+          >↩ Empfehlung übernehmen ({{ recommendedCalories }} kcal)</button>
+          <span>Richtwert je Mahlzeit: ca. {{ Math.round((form.targetCalories || 0) / 3) }} kcal.</span>
         </p>
+
         <div class="wizard-actions">
           <Button type="button" variant="outline" :onClick="() => (step = 1)">Zurück</Button>
           <Button type="submit" variant="accent">{{ saving ? 'Speichert …' : 'Weiter' }}</Button>
@@ -475,6 +602,60 @@ function goTo(nr) {
 .wizard-hint {
   color: #666;
   font-size: 0.9rem;
+}
+
+/* Schritt 2: Mifflin-Rechner */
+.metric-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.metric-row label {
+  flex: 1;
+  min-width: 120px;
+}
+.calc-result {
+  background: #f7faf2;
+  border: 1px solid rgba(124, 179, 66, 0.35);
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.calc-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.92rem;
+  color: #555;
+}
+.calc-line.highlight {
+  border-top: 1px solid rgba(124, 179, 66, 0.3);
+  margin-top: 0.3rem;
+  padding-top: 0.45rem;
+  color: var(--color-primary-dark);
+  font-size: 1rem;
+}
+.calc-line.highlight strong {
+  font-size: 1.1rem;
+}
+.hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 1rem;
+}
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
 }
 .wizard-info {
   color: #555;
