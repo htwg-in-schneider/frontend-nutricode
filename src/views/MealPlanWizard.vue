@@ -353,17 +353,24 @@ function goTo(nr) {
   // Nur zu bereits erreichten Schritten zurückspringen erlauben
   if (nr < step.value) step.value = nr
 }
+
+// Plan ausdrucken bzw. als PDF speichern (Browser-Druckdialog -> "Als PDF
+// speichern"). Das Druck-Stylesheet (style.css, @media print) blendet alles
+// außer dem Plan aus.
+function printPlan() {
+  window.print()
+}
 </script>
 
 <template>
   <section class="wizard container">
-    <div class="wizard-head">
+    <div class="wizard-head no-print">
       <h1>Ernährungsplan erstellen</h1>
       <router-link to="/ernaehrungsplan" class="wizard-exit">Abbrechen</router-link>
     </div>
 
     <!-- Fortschritts-Anzeige der vier Eingabemasken -->
-    <ol class="stepper">
+    <ol class="stepper no-print">
       <li
         v-for="s in STEPS"
         :key="s.nr"
@@ -606,7 +613,8 @@ function goTo(nr) {
           </ul>
         </div>
 
-        <div class="wizard-actions">
+        <div class="wizard-actions no-print">
+          <Button type="button" variant="outline" :onClick="printPlan">📄 Als PDF / drucken</Button>
           <Button v-if="!isCompleted" type="button" variant="outline" :onClick="() => (step = 4)">Zurück</Button>
           <Button v-if="!isCompleted" type="button" variant="accent" :onClick="complete">
             {{ saving ? 'Schließt ab …' : 'Plan abschließen' }}

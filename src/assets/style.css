@@ -664,3 +664,30 @@ textarea:focus-visible {
     content: none;
   }
 }
+
+/* ==========================================================
+   DRUCK / PDF
+   Für "Plan als PDF speichern" (window.print) im Ernährungsplan: Nur den
+   eigentlichen Inhalt ausgeben, Navigation/Buttons/Banner ausblenden. Elemente
+   mit der Klasse .no-print werden ausgeblendet.
+   ========================================================== */
+@media print {
+  .special-banner,
+  header,
+  .footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+  /* Einen Tag nicht über einen Seitenumbruch zerreißen */
+  .summary-day {
+    break-inside: avoid;
+  }
+}
