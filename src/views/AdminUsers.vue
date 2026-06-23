@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useApi } from '../composables/useApi.js'
+import { useDialog } from '../composables/useDialog.js'
 import { readApiError } from '../utils/apiError.js'
 import { LIMITS } from '../constants/validation.js'
 
@@ -12,6 +13,7 @@ import { LIMITS } from '../constants/validation.js'
  */
 
 const { apiFetch } = useApi()
+const { confirm } = useDialog()
 
 const ROLE_LABELS = { ADMIN: 'Administrator:in', USER: 'Benutzer:in' }
 const ROLES = ['USER', 'ADMIN']
@@ -84,6 +86,28 @@ async function saveEdit(u) {
     error.value = e.message
   }
 }
+
+// Benutzer NUR aus der lokalen Datenbank löschen (der Auth0-Account bleibt
+// bestehen – siehe Hinweis im AdminController). Meldet sich die Person erneut an,
+// wird ihr Datensatz aus dem Token neu angelegt.
+async function deleteUser(u) {
+  const ok = await confirm(
+    `Benutzer „${u.name || u.email || u.oauthId}“ wirklich aus der Datenbank löschen?\n\n`
+      + 'Der Auth0-Account bleibt bestehen; bei erneuter Anmeldung wird der Datensatz neu angelegt.',
+    { title: 'Benutzer löschen', confirmText: 'Löschen', danger: true },
+  )
+  if (!ok) return
+  error.value = null
+  message.value = null
+  try {
+    const res = await apiFetch(`/api/admin/users?oauthId=${encodeURIComponent(u.oauthId)}`, { method: 'DELETE' })
+    if (!res.ok && res.status !== 204) throw new Error(await readApiError(res, 'Löschen fehlgeschlagen.'))
+    users.value = users.value.filter((x) => x.oauthId !== u.oauthId)
+    message.value = `Benutzer „${u.name || u.email}“ aus der Datenbank gelöscht.`
+  } catch (e) {
+    error.value = e.message
+  }
+}
 </script>
 
 <template>
@@ -93,8 +117,9 @@ async function saveEdit(u) {
       <router-link to="/admin" class="au-back">← Admin-Bereich</router-link>
     </div>
     <p class="au-sub">
-      Benutzerdaten ansehen, durchsuchen und bearbeiten. Neue Konten werden in
-      Auth0 angelegt, daher kein „Neu" hier.
+      Benutzerdaten ansehen, durchsuchen, bearbeiten und löschen. Neue Konten
+      werden in Auth0 angelegt, daher kein „Neu" hier. Löschen entfernt den
+      Datensatz nur aus der lokalen Datenbank – der Auth0-Account bleibt bestehen.
     </p>
 
     <input
@@ -149,6 +174,7 @@ async function saveEdit(u) {
               </td>
               <td class="au-actions cell-actions">
                 <button type="button" class="btn btn-outline au-btn" @click="startEdit(u)">Bearbeiten</button>
+                <button type="button" class="btn btn-danger au-btn" @click="deleteUser(u)">Löschen</button>
               </td>
             </template>
           </tr>
