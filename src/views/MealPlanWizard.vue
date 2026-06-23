@@ -317,6 +317,10 @@ async function aiGenerate() {
 // Nutzers (passend zum Kalorienziel). Bei Erfolg true + Hinweis-Toast; schlägt
 // auch das fehl, wird der ursprüngliche KI-Fehler angezeigt.
 async function fillFromOwnDishes(aiErrorMessage) {
+  // Echten Grund sichtbar machen (z. B. "KI ist nicht konfiguriert
+  // (GEMINI_API_KEY fehlt)" oder "KI ist gerade ausgelastet"), damit der
+  // Fallback nicht mysteriös wirkt.
+  console.warn('[KI-Fallback] ai-fill fehlgeschlagen, nutze autofill. Grund:', aiErrorMessage)
   try {
     const res = await apiFetch(`/api/mealplan/${plan.value.id}/autofill`, { method: 'POST' })
     if (!res.ok) throw new Error(await readApiError(res, 'Automatischer Vorschlag fehlgeschlagen.'))
