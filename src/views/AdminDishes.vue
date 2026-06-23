@@ -81,34 +81,34 @@ async function remove(dish) {
 
 <template>
   <section class="admin-dishes container">
-    <div class="ad-head">
+    <div class="gv-head">
       <h1>Gerichte verwalten</h1>
-      <router-link to="/admin" class="ad-back">← Admin-Bereich</router-link>
+      <router-link to="/admin" class="gv-back">← Admin-Bereich</router-link>
     </div>
-    <p class="ad-sub">
+    <p class="gv-sub">
       Stammdaten der globalen Vorlagen-Gerichte. Sie dienen allen neuen
       Nutzer:innen als Startbestand.
     </p>
 
-    <div class="ad-toolbar">
+    <div class="gv-toolbar">
       <input
         v-model="search"
         type="search"
-        class="ad-search"
+        class="gv-search"
         placeholder="Gericht suchen …"
       />
-      <select v-model="categoryFilter" class="ad-filter">
+      <select v-model="categoryFilter" class="gv-filter">
         <option value="">Alle Kategorien</option>
         <option v-for="(label, key) in CATEGORY_LABELS" :key="key" :value="key">{{ label }}</option>
       </select>
-      <router-link to="/dish/new" class="btn btn-accent ad-new">+ Neues Gericht</router-link>
+      <router-link to="/dish/new" class="btn btn-accent gv-new">+ Neues Gericht</router-link>
     </div>
 
-    <p v-if="error" class="ad-msg err">{{ error }}</p>
-    <p v-if="loading" class="ad-info">Lade Gerichte …</p>
+    <p v-if="error" class="gv-msg err">{{ error }}</p>
+    <p v-if="loading" class="gv-info">Lade Gerichte …</p>
 
-    <div v-else class="ad-table-wrap">
-      <table class="ad-table responsive-table">
+    <div v-else class="gv-table-wrap">
+      <table class="gv-table responsive-table">
         <thead>
           <tr>
             <th>Titel</th>
@@ -119,19 +119,19 @@ async function remove(dish) {
         </thead>
         <tbody>
           <tr v-for="d in filteredDishes" :key="d.id">
-            <td data-label="Titel" class="ad-title">{{ d.title }}</td>
+            <td data-label="Titel" class="gv-title">{{ d.title }}</td>
             <td data-label="Kategorie">{{ CATEGORY_LABELS[d.category] || d.category }}</td>
             <td data-label="Kalorien">{{ d.calories }} kcal</td>
-            <td class="ad-actions cell-actions">
-              <router-link :to="`/dish/${d.id}`" class="btn btn-outline ad-btn">Ansehen</router-link>
-              <button type="button" class="btn btn-outline ad-btn" @click="router.push(`/dish/${d.id}/edit`)">
+            <td class="gv-actions cell-actions">
+              <router-link :to="`/dish/${d.id}`" class="btn btn-outline gv-btn">Ansehen</router-link>
+              <button type="button" class="btn btn-outline gv-btn" @click="router.push(`/dish/${d.id}/edit`)">
                 Bearbeiten
               </button>
-              <button type="button" class="btn btn-danger ad-btn" @click="remove(d)">Löschen</button>
+              <button type="button" class="btn btn-danger gv-btn" @click="remove(d)">Löschen</button>
             </td>
           </tr>
           <tr v-if="filteredDishes.length === 0">
-            <td colspan="4" class="ad-empty">Keine Gerichte gefunden.</td>
+            <td colspan="4" class="gv-empty">Keine Gerichte gefunden.</td>
           </tr>
         </tbody>
       </table>
@@ -144,28 +144,28 @@ async function remove(dish) {
   max-width: 1000px;
   padding: 3rem 1rem;
 }
-.ad-head {
+.gv-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 1rem;
 }
-.ad-back {
+.gv-back {
   font-size: 0.9rem;
   color: var(--color-primary-dark);
 }
-.ad-sub {
+.gv-sub {
   color: #555;
   margin: 0.5rem 0 1.5rem;
 }
-.ad-toolbar {
+.gv-toolbar {
   display: flex;
   gap: 0.7rem;
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
 }
-.ad-search {
+.gv-search {
   flex: 1;
   min-width: 200px;
   padding: 0.7rem 0.9rem;
@@ -174,59 +174,59 @@ async function remove(dish) {
   font-size: 1rem;
   font-family: inherit;
 }
-.ad-filter {
+.gv-filter {
   padding: 0.7rem 0.9rem;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.95rem;
 }
-.ad-new {
+.gv-new {
   white-space: nowrap;
 }
-.ad-info {
+.gv-info {
   color: #555;
 }
-.ad-msg.err {
+.gv-msg.err {
   color: var(--color-danger);
   font-weight: 600;
 }
 
-.ad-table-wrap {
+.gv-table-wrap {
   overflow-x: auto;
 }
-.ad-table {
+.gv-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 640px;
 }
-.ad-table th,
-.ad-table td {
+.gv-table th,
+.gv-table td {
   text-align: left;
   padding: 0.7rem 0.9rem;
   border-bottom: 1px solid #eee;
   font-size: 0.93rem;
   vertical-align: middle;
 }
-.ad-table th {
+.gv-table th {
   color: var(--color-primary-dark);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.ad-title {
+.gv-title {
   font-weight: 600;
 }
-.ad-actions {
+.gv-actions {
   display: flex;
   gap: 0.4rem;
   white-space: nowrap;
 }
-.ad-btn {
+.gv-btn {
   padding: 0.4rem 0.8rem;
   font-size: 0.83rem;
 }
-.ad-empty {
+.gv-empty {
   text-align: center;
   color: #888;
   padding: 1.5rem;
