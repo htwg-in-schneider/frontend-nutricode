@@ -6,6 +6,7 @@ import { CATEGORY_LABELS } from '../config.js'
 import DishIngredients from '../components/DishIngredients.vue'
 import { useApi } from '../composables/useApi.js'
 import { useRoles } from '../composables/useRoles.js'
+import { dishImage, mealPlaceholder } from '../utils/dishImage.js'
 
 
 const route = useRoute()
@@ -42,6 +43,13 @@ watch(
 function goBack() {
   router.back()
 }
+
+// Bei Bild-Ladefehler auf den Platzhalter zurückfallen (onerror danach
+// entfernen, um einen Endlos-Loop zu vermeiden).
+function onImgError(e) {
+  e.target.onerror = null
+  e.target.src = mealPlaceholder(dish.value)
+}
 </script>
 
 <template>
@@ -49,7 +57,7 @@ function goBack() {
     <Button variant="outline" :onClick="goBack">← Zurück</Button>
 
     <div class="dish-detail-content">
-      <img :src="dish.imageUrl" :alt="dish.title" class="dish-detail-image">
+      <img :src="dishImage(dish)" :alt="dish.title" class="dish-detail-image" @error="onImgError">
       <div class="dish-detail-info">
         <p class="dish-category">{{ CATEGORY_LABELS[dish.category] || dish.category }}</p>
         <h1>{{ dish.title }}</h1>

@@ -1,6 +1,7 @@
 <script setup>
 import { CATEGORY_LABELS } from '../config.js'
 import { useRoles } from '../composables/useRoles.js'
+import { dishImage, mealPlaceholder } from '../utils/dishImage.js'
 
 const props = defineProps({
   dish: { type: Object, required: true }
@@ -8,11 +9,18 @@ const props = defineProps({
 
 // Bearbeiten nur für eingeloggte Nutzer:innen (Admin = Vorlagen, User = eigene Kopien)
 const { isAuthenticated } = useRoles()
+
+// Lädt das (echte) Bild nicht, auf den Platzhalter zurückfallen. onerror danach
+// entfernen, damit kein Endlos-Loop entsteht, falls auch der Platzhalter fehlt.
+function onImgError(e) {
+  e.target.onerror = null
+  e.target.src = mealPlaceholder(props.dish)
+}
 </script>
 
 <template>
   <article class="dish-card">
-    <img :src="dish.imageUrl" :alt="dish.title" class="dish-image">
+    <img :src="dishImage(dish)" :alt="dish.title" class="dish-image" @error="onImgError">
     <p class="dish-category">{{ CATEGORY_LABELS[dish.category] || dish.category }}</p>
     <h3 class="dish-name">{{ dish.title }}</h3>
     <p class="dish-meta">{{ dish.calories }} kcal</p>
