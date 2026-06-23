@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '../composables/useApi.js'
 import { useDialog } from '../composables/useDialog.js'
+import { readApiError } from '../utils/apiError.js'
 import { CATEGORY_LABELS } from '../config.js'
 
 /**
@@ -37,7 +38,9 @@ async function load() {
   try {
     // Als Admin -> globale Vorlagen-Gerichte (Stammdaten)
     const res = await apiFetch('/api/dish')
-    if (!res.ok) throw new Error('Gerichte konnten nicht geladen werden.')
+    if (!res.ok) {
+      throw new Error(await readApiError(res, `Gerichte konnten nicht geladen werden (HTTP ${res.status}).`))
+    }
     dishes.value = await res.json()
   } catch (e) {
     error.value = e.message
