@@ -7,6 +7,7 @@ import CreateDish from '../views/CreateDish.vue'
 import EditDish from '../views/EditDish.vue'
 import Datenschutz from '../views/Datenschutz.vue'
 import Impressum from '../views/Impressum.vue'
+import NotFound from '../views/NotFound.vue'
 import Calculator from '../views/Calculator.vue'
 import Profile from '../views/Profile.vue'
 import Admin from '../views/Admin.vue'
@@ -41,7 +42,9 @@ const router = createRouter({
     { path: '/admin/ernaehrungsplaene', name: 'admin-mealplans', component: AdminMealPlans, beforeEnter: adminGuard },
     { path: '/admin/ernaehrungsplaene/:id', name: 'admin-mealplan-detail', component: AdminMealPlanDetail, beforeEnter: adminGuard },
     { path: '/datenschutz', name: 'datenschutz', component: Datenschutz },
-    { path: '/impressum', name: 'impressum', component: Impressum }
+    { path: '/impressum', name: 'impressum', component: Impressum },
+    // Auffangroute für unbekannte URLs (muss als Letztes stehen)
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFound }
   ],
   // Bei Hash-Links (z. B. #kontakt) sanft zur Ziel-Sektion scrollen
   scrollBehavior(to) {
