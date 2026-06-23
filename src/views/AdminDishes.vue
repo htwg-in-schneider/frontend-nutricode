@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useApi } from '../composables/useApi.js'
+import { useRoles } from '../composables/useRoles.js'
 import { useDialog } from '../composables/useDialog.js'
 import { readApiError } from '../utils/apiError.js'
 import { CATEGORY_LABELS } from '../config.js'
@@ -15,6 +16,7 @@ import { CATEGORY_LABELS } from '../config.js'
 
 const router = useRouter()
 const { apiFetch } = useApi()
+const { isLoading, isAuthenticated } = useRoles()
 const { confirm } = useDialog()
 
 const dishes = ref([])
@@ -49,7 +51,17 @@ async function load() {
   }
 }
 
-onMounted(load)
+// Erst laden, wenn Auth0 fertig initialisiert ist (sonst geht der erste Request
+// raus, bevor der Token bereit ist – wie bei DishCatalog). Reagiert zusätzlich
+// auf Login/Logout.
+watch(
+  [isLoading, isAuthenticated],
+  ([loading]) => {
+    if (loading) return
+    load()
+  },
+  { immediate: true },
+)
 
 async function remove(dish) {
   const ok = await confirm(`Gericht „${dish.title}“ wirklich löschen?`, {
