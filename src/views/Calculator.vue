@@ -1,16 +1,23 @@
 <script setup>
 import { reactive, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
 import { GOAL_LABELS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
 import { clampNumber } from '../utils/clamp.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
+import { useApi } from '../composables/useApi.js'
+import { useRoles } from '../composables/useRoles.js'
 
 /**
  * Öffentlicher Kalorienrechner (ohne Anmeldung). Berechnet per Mifflin-St-Jeor
  * Grundumsatz, Tagesbedarf und empfohlene Zielkalorien. Von hier aus kann man –
  * nach Anmeldung – direkt einen Ernährungsplan erstellen.
  */
+const router = useRouter()
+const { apiFetch } = useApi()
+const { isAuthenticated } = useRoles()
+
 const form = reactive({
   sex: 'MALE', age: null, heightCm: null, weightKg: null,
   activityLevel: 'MODERATE', goal: 'MAINTAIN',
@@ -19,6 +26,31 @@ const form = reactive({
 // Eingaben beim Verlassen des Feldes auf plausible Werte begrenzen.
 function clampField(key, min, max, integer = true) {
   form[key] = clampNumber(form[key], min, max, { integer })
+}
+
+// Weiter in den Plan-Wizard. Eingeloggte Nutzer:innen: die hier eingegebenen
+// Körperdaten zuerst ins Profil übernehmen, damit der Wizard (Schritt 2) sie
+// bereits vorausgefüllt hat (dort weiterhin frei editierbar). Nicht eingeloggte
+// gelangen über den Login in den Wizard und füllen die Werte dort aus.
+async function startPlan() {
+  if (isAuthenticated.value) {
+    try {
+      await apiFetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sex: form.sex,
+          age: form.age !== null && form.age !== '' ? Number(form.age) : null,
+          heightCm: form.heightCm !== null && form.heightCm !== '' ? Number(form.heightCm) : null,
+          weightKg: form.weightKg !== null && form.weightKg !== '' ? Number(form.weightKg) : null,
+          activityLevel: form.activityLevel,
+        }),
+      })
+    } catch (e) {
+      // Übernahme ist optional – im Zweifel füllt man die Werte im Wizard aus
+    }
+  }
+  router.push('/ernaehrungsplan/neu')
 }
 
 const bmr = computed(() => calcBmr(form))
@@ -100,10 +132,14 @@ const target = computed(() => calcTargetCalories(form, form.goal))
 
     <!-- Weiterführung in den Plan-Wizard (Login erforderlich) -->
     <div class="calc-cta">
-      <router-link to="/ernaehrungsplan/neu" class="btn btn-accent">
+      <button type="button" class="btn btn-accent" @click="startPlan">
         Jetzt Ernährungsplan erstellen →
-      </router-link>
-      <span class="calc-cta-note">Anmeldung erforderlich · mit KI-generierten Gerichten</span>
+      </button>
+      <span class="calc-cta-note">
+        {{ isAuthenticated
+          ? 'Deine Werte werden ins Profil übernommen – im Wizard anpassbar.'
+          : 'Anmeldung erforderlich · mit KI-generierten Gerichten' }}
+      </span>
     </div>
   </section>
 </template>
