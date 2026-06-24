@@ -10,6 +10,7 @@ import { LIMITS } from '../constants/validation.js'
 import { clampNumber } from '../utils/clamp.js'
 import { SEX_OPTIONS, ACTIVITY_LEVELS, DISH_PREFERENCES } from '../constants/nutrition.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
+import { popPendingMetrics } from '../utils/pendingMetrics.js'
 
 /**
  * Ernährungsplan-Wizard = der komplexe, mehrstufige Vorgang.
@@ -48,6 +49,13 @@ const form = reactive({
 // Eingaben beim Verlassen des Feldes auf plausible Werte begrenzen.
 function clampField(key, min, max, integer = true) {
   form[key] = clampNumber(form[key], min, max, { integer })
+}
+
+// Wie clampField, sichert die Körperdaten zusätzlich sofort ins Profil – damit
+// sie auch ohne Abschluss von Schritt 2 erhalten bleiben (überall immer gespeichert).
+function clampMetric(key, min, max, integer = true) {
+  clampField(key, min, max, integer)
+  saveProfileMetrics()
 }
 
 // true, sobald die Zielkalorien manuell/aus dem Plan gesetzt sind -> dann nicht
@@ -166,8 +174,28 @@ async function saveProfileMetrics() {
   }
 }
 
+// Hat der Nutzer die Werte im öffentlichen Kalorienrechner (ohne Login) eingegeben
+// und sich dann für den Plan angemeldet, liegen sie zwischengespeichert vor: einmalig
+// ins Profil übernehmen, danach füllt loadProfile() sie regulär in den Wizard.
+async function applyPendingMetrics() {
+  const metrics = popPendingMetrics()
+  if (!metrics) return
+  try {
+    await apiFetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(metrics),
+    })
+  } catch (e) {
+    // Übernahme optional – die Werte lassen sich im Wizard erneut eingeben
+  }
+}
+
 onMounted(async () => {
   await loadDishes()
+  // Vor dem Vorausfüllen: evtl. anonym im Kalorienrechner eingegebene Werte
+  // (nach dem Login) ins Profil übernehmen, damit loadProfile() sie findet.
+  await applyPendingMetrics()
   await loadProfile()
   const id = route.params.id
   if (id) {
@@ -425,7 +453,7 @@ function printPlan() {
 
         <label>
           Geschlecht
-          <select v-model="form.sex">
+          <select v-model="form.sex" @change="saveProfileMetrics">
             <option v-for="s in SEX_OPTIONS" :key="s.key" :value="s.key">{{ s.label }}</option>
           </select>
         </label>
@@ -436,7 +464,7 @@ function printPlan() {
             <input
               v-model.number="form.age" type="number"
               :min="LIMITS.AGE_MIN" :max="LIMITS.AGE_MAX" placeholder="z. B. 25"
-              @change="clampField('age', LIMITS.AGE_MIN, LIMITS.AGE_MAX)"
+              @change="clampMetric('age', LIMITS.AGE_MIN, LIMITS.AGE_MAX)"
             />
           </label>
           <label>
@@ -444,7 +472,7 @@ function printPlan() {
             <input
               v-model.number="form.heightCm" type="number"
               :min="LIMITS.HEIGHT_MIN" :max="LIMITS.HEIGHT_MAX" placeholder="z. B. 178"
-              @change="clampField('heightCm', LIMITS.HEIGHT_MIN, LIMITS.HEIGHT_MAX)"
+              @change="clampMetric('heightCm', LIMITS.HEIGHT_MIN, LIMITS.HEIGHT_MAX)"
             />
           </label>
           <label>
@@ -452,14 +480,14 @@ function printPlan() {
             <input
               v-model.number="form.weightKg" type="number"
               :min="LIMITS.WEIGHT_MIN" :max="LIMITS.WEIGHT_MAX" step="0.1" placeholder="z. B. 72"
-              @change="clampField('weightKg', LIMITS.WEIGHT_MIN, LIMITS.WEIGHT_MAX, false)"
+              @change="clampMetric('weightKg', LIMITS.WEIGHT_MIN, LIMITS.WEIGHT_MAX, false)"
             />
           </label>
         </div>
 
         <label>
           Aktivitätslevel
-          <select v-model="form.activityLevel">
+          <select v-model="form.activityLevel" @change="saveProfileMetrics">
             <option v-for="a in ACTIVITY_LEVELS" :key="a.key" :value="a.key">{{ a.label }}</option>
           </select>
         </label>

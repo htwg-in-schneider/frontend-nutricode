@@ -1,56 +1,117 @@
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth0 } from '@auth0/auth0-vue'
 import { SEX_OPTIONS, ACTIVITY_LEVELS } from '../constants/nutrition.js'
 import { GOAL_LABELS } from '../config.js'
 import { LIMITS } from '../constants/validation.js'
 import { clampNumber } from '../utils/clamp.js'
 import { calcBmr, calcTdee, calcTargetCalories } from '../utils/mifflin.js'
+import { stashPendingMetrics } from '../utils/pendingMetrics.js'
 import { useApi } from '../composables/useApi.js'
 import { useRoles } from '../composables/useRoles.js'
 
 /**
  * Öffentlicher Kalorienrechner (ohne Anmeldung). Berechnet per Mifflin-St-Jeor
- * Grundumsatz, Tagesbedarf und empfohlene Zielkalorien. Von hier aus kann man –
- * nach Anmeldung – direkt einen Ernährungsplan erstellen.
+ * Grundumsatz, Tagesbedarf und empfohlene Zielkalorien.
+ *
+ * Eingeloggt ist das Profil die einzige Quelle der Wahrheit: Die Körperdaten
+ * werden beim Öffnen aus dem Profil vorausgefüllt und bei jeder Änderung
+ * automatisch dorthin zurückgespeichert (ohne Weiterleitung). Von hier aus
+ * gelangt man – nach Anmeldung – direkt in den Ernährungsplan-Wizard.
  */
 const router = useRouter()
 const { apiFetch } = useApi()
-const { isAuthenticated } = useRoles()
+const { loginWithRedirect } = useAuth0()
+const { isAuthenticated, isLoading } = useRoles()
 
 const form = reactive({
   sex: 'MALE', age: null, heightCm: null, weightKg: null,
   activityLevel: 'MODERATE', goal: 'MAINTAIN',
 })
 
-// Eingaben beim Verlassen des Feldes auf plausible Werte begrenzen.
-function clampField(key, min, max, integer = true) {
-  form[key] = clampNumber(form[key], min, max, { integer })
+// Kurzes "gespeichert"-Feedback nach dem automatischen Speichern ins Profil.
+const savedHint = ref(false)
+let savedTimer = null
+
+// Nur die Körperdaten (ohne Ziel – das Ziel gehört zum Plan, nicht ins Profil).
+function metricsPayload() {
+  return {
+    sex: form.sex,
+    age: form.age !== null && form.age !== '' ? Number(form.age) : null,
+    heightCm: form.heightCm !== null && form.heightCm !== '' ? Number(form.heightCm) : null,
+    weightKg: form.weightKg !== null && form.weightKg !== '' ? Number(form.weightKg) : null,
+    activityLevel: form.activityLevel,
+  }
 }
 
-// Weiter in den Plan-Wizard. Eingeloggte Nutzer:innen: die hier eingegebenen
-// Körperdaten zuerst ins Profil übernehmen, damit der Wizard (Schritt 2) sie
-// bereits vorausgefüllt hat (dort weiterhin frei editierbar). Nicht eingeloggte
-// gelangen über den Login in den Wizard und füllen die Werte dort aus.
+// Körperdaten ins Profil speichern (nur eingeloggt). Fehler werden bewusst
+// geschluckt: ein noch unvollständiger Wert darf den Rechner nicht stören.
+async function persistMetrics() {
+  if (!isAuthenticated.value) return
+  try {
+    const res = await apiFetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(metricsPayload()),
+    })
+    if (!res.ok) return
+    savedHint.value = true
+    clearTimeout(savedTimer)
+    savedTimer = setTimeout(() => { savedHint.value = false }, 2000)
+  } catch (e) {
+    // Speichern ist optional – der Wert bleibt im Zweifel nur lokal im Formular
+  }
+}
+
+// Eingaben beim Verlassen des Feldes begrenzen UND (eingeloggt) ins Profil sichern.
+function clampField(key, min, max, integer = true) {
+  form[key] = clampNumber(form[key], min, max, { integer })
+  persistMetrics()
+}
+
+// Profil-Körperdaten in den Rechner laden (sobald Auth0 bereit & eingeloggt),
+// damit der Rechner mit den gespeicherten Werten vorausgefüllt ist.
+async function loadProfileIntoForm() {
+  try {
+    const res = await apiFetch('/api/profile')
+    if (!res.ok) return
+    const p = await res.json()
+    if (p.sex) form.sex = p.sex
+    if (p.age != null) form.age = p.age
+    if (p.heightCm != null) form.heightCm = p.heightCm
+    if (p.weightKg != null) form.weightKg = p.weightKg
+    if (p.activityLevel) form.activityLevel = p.activityLevel
+  } catch (e) {
+    // Profil optional – dann bleiben die Standardwerte stehen
+  }
+}
+
+// Erst laden, wenn Auth0 fertig geladen ist; bei Login erneut vorausfüllen.
+watch([isLoading, isAuthenticated], ([loading, authed]) => {
+  if (loading) return
+  if (authed) loadProfileIntoForm()
+}, { immediate: true })
+
+onUnmounted(() => clearTimeout(savedTimer))
+
+// Weiter in den Plan-Wizard.
+//  - Eingeloggt: Körperdaten sicher ins Profil übernehmen, dann in den Wizard
+//    (dort vorausgefüllt und weiterhin frei editierbar).
+//  - Nicht eingeloggt: Werte zwischenspeichern und über den Auth0-Login in den
+//    Wizard leiten. Nach dem Login werden sie dort einmalig ins Profil übernommen.
 async function startPlan() {
   if (isAuthenticated.value) {
-    try {
-      await apiFetch('/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sex: form.sex,
-          age: form.age !== null && form.age !== '' ? Number(form.age) : null,
-          heightCm: form.heightCm !== null && form.heightCm !== '' ? Number(form.heightCm) : null,
-          weightKg: form.weightKg !== null && form.weightKg !== '' ? Number(form.weightKg) : null,
-          activityLevel: form.activityLevel,
-        }),
-      })
-    } catch (e) {
-      // Übernahme ist optional – im Zweifel füllt man die Werte im Wizard aus
-    }
+    await persistMetrics()
+    router.push('/ernaehrungsplan/neu')
+    return
   }
-  router.push('/ernaehrungsplan/neu')
+  stashPendingMetrics(metricsPayload())
+  try {
+    await loginWithRedirect({ appState: { target: '/ernaehrungsplan/neu' } })
+  } catch (e) {
+    console.error('[Auth0] Login fehlgeschlagen:', e)
+  }
 }
 
 const bmr = computed(() => calcBmr(form))
@@ -72,7 +133,7 @@ const target = computed(() => calcTargetCalories(form, form.goal))
     <form class="calc-form" @submit.prevent>
       <label>
         Geschlecht
-        <select v-model="form.sex">
+        <select v-model="form.sex" @change="persistMetrics">
           <option v-for="s in SEX_OPTIONS" :key="s.key" :value="s.key">{{ s.label }}</option>
         </select>
       </label>
@@ -106,7 +167,7 @@ const target = computed(() => calcTargetCalories(form, form.goal))
 
       <label>
         Aktivitätslevel
-        <select v-model="form.activityLevel">
+        <select v-model="form.activityLevel" @change="persistMetrics">
           <option v-for="a in ACTIVITY_LEVELS" :key="a.key" :value="a.key">{{ a.label }}</option>
         </select>
       </label>
@@ -118,6 +179,13 @@ const target = computed(() => calcTargetCalories(form, form.goal))
         </select>
       </label>
     </form>
+
+    <!-- Hinweis: eingeloggt werden die Werte automatisch im Profil gespeichert -->
+    <p v-if="isAuthenticated" class="calc-saved-note" :class="{ ok: savedHint }">
+      {{ savedHint
+        ? 'Im Profil gespeichert ✓'
+        : 'Angemeldet – deine Eingaben werden automatisch in deinem Profil gespeichert.' }}
+    </p>
 
     <!-- Live-Ergebnis -->
     <div v-if="target != null" class="calc-result">
@@ -137,8 +205,8 @@ const target = computed(() => calcTargetCalories(form, form.goal))
       </button>
       <span class="calc-cta-note">
         {{ isAuthenticated
-          ? 'Deine Werte werden ins Profil übernommen – im Wizard anpassbar.'
-          : 'Anmeldung erforderlich · mit KI-generierten Gerichten' }}
+          ? 'Deine Werte sind im Profil gespeichert – im Wizard anpassbar.'
+          : 'Anmeldung erforderlich · deine Eingaben werden übernommen' }}
       </span>
     </div>
   </section>
@@ -215,6 +283,16 @@ const target = computed(() => calcTargetCalories(form, form.goal))
   margin-top: 1.5rem;
   color: #666;
   text-align: center;
+}
+.calc-saved-note {
+  margin-top: 0.6rem;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #888;
+}
+.calc-saved-note.ok {
+  color: var(--color-primary-dark);
+  font-weight: 600;
 }
 .calc-cta {
   margin-top: 2rem;
