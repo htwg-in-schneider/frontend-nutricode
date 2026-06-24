@@ -233,6 +233,20 @@ async function deleteDish() {
   gap: 0.5rem;
   align-items: center;
 }
+.ingredient-row input {
+  flex: 1;
+  min-width: 0; /* darf unter die intrinsische Eingabebreite schrumpfen -> kein Überlauf */
+}
+
+/* Mobile: Zutat + Menge je eine volle Zeile, damit nichts über den Rand ragt */
+@media (max-width: 480px) {
+  .ingredient-row {
+    flex-wrap: wrap;
+  }
+  .ingredient-row input {
+    flex: 1 1 100%;
+  }
+}
 .btn-danger {
   padding: 0.45rem 0.7rem;
   font-size: 0.85rem;

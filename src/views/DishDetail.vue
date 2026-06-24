@@ -40,8 +40,10 @@ watch(
   { immediate: true }
 )
 
+// Fest zur Gerichte-Übersicht zurück (nicht router.back(): nach dem Bearbeiten
+// läge die Edit-Seite im Verlauf und "Zurück" würde wieder dorthin führen).
 function goBack() {
-  router.back()
+  router.push('/gerichte')
 }
 
 // Bei Bild-Ladefehler auf den Platzhalter zurückfallen (onerror danach

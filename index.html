@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- iOS Safari erkennt sonst Zahlen (z. B. Kalorienwerte) als Telefonnummern
+         und stellt sie als blaue, antippbare Links dar. -->
+    <meta name="format-detection" content="telephone=no">
+    <!-- App ist durchgehend hell gestaltet: verhindert, dass der Dark-Mode des
+         Geräts Formular-/Textfarben (z. B. blau) umfärbt. -->
+    <meta name="color-scheme" content="light">
     <title>NutriCode</title>
     <!-- Google Fonts (externe Ressource, wie externes CSS per link eingebunden, Folie 25) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
